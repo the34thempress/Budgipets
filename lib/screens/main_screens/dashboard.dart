@@ -142,7 +142,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                   Image.asset(
-                    "assets/pet.png",
+                    "assets/images/pet.png",
                     height: 80,
                   ), // 👈 your pixel pet asset
                 ],
