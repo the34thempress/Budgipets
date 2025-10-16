@@ -58,6 +58,13 @@ flutter:
     - assets/images/logo.png
     - assets/images/mini_logo.png
     - assets/images/pet.png
+    - assets/images/shades.png
+    - assets/images/bow.png
+    - assets/images/necktie.png
+    - assets/images/dog_egg.png
+    - assets/images/cat_egg.png
+    - assets/images/streakfreeze.png
+    - assets/images/coin.png
 
   fonts:
     - family: Questrial
