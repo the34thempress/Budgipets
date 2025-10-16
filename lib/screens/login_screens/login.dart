@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'create_account.dart'; // import your create_account page
-import 'dashboard.dart';     // import your dashboard page
+import '../main_screens/dashboard.dart';     // import your dashboard page
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});

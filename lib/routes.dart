@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'login.dart';
-import 'create_account.dart';
-import 'profile_page.dart';
-import 'dashboard.dart';
-import 'settings_page.dart';
+import 'screens/login_screens/login.dart';
+import 'screens/login_screens/create_account.dart';
+import 'screens/setting_screens/profile_page.dart';
+import 'screens/main_screens/dashboard.dart';
+import 'screens/setting_screens/settings_page.dart';
 
 class Routes {
   static const String login = '/login';
