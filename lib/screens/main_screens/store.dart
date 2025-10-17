@@ -10,34 +10,33 @@ class StorePage extends StatefulWidget {
 class _StorePageState extends State<StorePage> {
   int coins = 175; // 💰 Hardcoded store currency
 
-  // 🧺 Store items using your PNG icons
   final List<Map<String, dynamic>> storeItems = [
     {
       'name': 'Streak Freeze',
       'description':
           'Out for vacation? Or perhaps a digital break? Streak freeze allows you to freeze your current streak to save your pet’s life!',
       'price': 50,
-      'image': 'assets/images/streak_freeze.png',
+      'image': 'assets/images/streakfreeze.png',
     },
     {
       'name': 'Cool Glasses',
       'description': 'You may equip this to your pet. “amazing”.',
       'price': 199,
-      'image': 'assets/images/cool_glasses.png',
+      'image': 'assets/images/shades.png',
     },
     {
-      'name': 'Ribbon',
+      'name': 'Bow',
       'description':
           'You may equip this to your pet. Your pet’s girliness is through the roof.',
       'price': 150,
-      'image': 'assets/images/ribbon.png',
+      'image': 'assets/images/bow.png',
     },
     {
       'name': 'Dexter’s Tie',
       'description':
           'You may equip this to your pet. Nice tie, surely, one must follow a strict code for his dark passenger.',
       'price': 89,
-      'image': 'assets/images/tie.png',
+      'image': 'assets/images/necktie.png',
     },
     {
       'name': 'Dog Egg',
@@ -60,16 +59,23 @@ class _StorePageState extends State<StorePage> {
         bool canAfford = coins >= item['price'];
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text('Purchase ${item['name']}?'),
+          title: Text(
+            'Purchase ${item['name']}?',
+            style: const TextStyle(fontFamily: 'Questrial'),
+          ),
           content: Text(
             canAfford
                 ? 'This will cost ${item['price']} coins.'
                 : 'You don’t have enough coins to buy this item.',
+            style: const TextStyle(fontFamily: 'Questrial'),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(fontFamily: 'Questrial'),
+              ),
             ),
             if (canAfford)
               ElevatedButton(
@@ -80,7 +86,10 @@ class _StorePageState extends State<StorePage> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('You purchased ${item['name']}!'),
+                      content: Text(
+                        'You purchased ${item['name']}!',
+                        style: const TextStyle(fontFamily: 'Questrial'),
+                      ),
                       duration: const Duration(seconds: 2),
                     ),
                   );
@@ -90,7 +99,10 @@ class _StorePageState extends State<StorePage> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
                 ),
-                child: const Text('Confirm'),
+                child: const Text(
+                  'Confirm',
+                  style: TextStyle(fontFamily: 'Questrial'),
+                ),
               ),
           ],
         );
@@ -102,30 +114,37 @@ class _StorePageState extends State<StorePage> {
     return GestureDetector(
       onTap: () => _showConfirmDialog(item),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: const Color(0xFFF6E3CA),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.brown.shade300, width: 1.5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.brown.shade300, width: 1.8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.brown.withOpacity(0.2),
+              offset: const Offset(2, 4),
+              blurRadius: 4,
+            )
+          ],
         ),
         child: Row(
           children: [
-            // 🖼 Item Image (from assets)
+            // 🖼 Item Image
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: Colors.brown.shade100,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Image.asset(
                 item['image'],
-                width: 48,
-                height: 48,
+                width: 75,
+                height: 75,
                 fit: BoxFit.contain,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             // 📝 Item name & description
             Expanded(
               child: Column(
@@ -134,30 +153,52 @@ class _StorePageState extends State<StorePage> {
                   Text(
                     item['name'],
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 18, // smaller font
                       fontWeight: FontWeight.bold,
                       color: Colors.brown,
+                      fontFamily: 'Questrial',
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     item['description'],
                     style: const TextStyle(
                       fontSize: 13,
                       color: Colors.brown,
+                      fontFamily: 'Questrial',
                     ),
                   ),
                 ],
               ),
             ),
-            // 💰 Price
-            Column(
-              children: [
-                const Icon(Icons.monetization_on,
-                    color: Colors.orange, size: 20),
-                Text('${item['price']}'),
-              ],
-            )
+            const SizedBox(width: 10),
+            // 💰 Price inside a brown box
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+              decoration: BoxDecoration(
+                color: Colors.brown[400],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Image.asset(
+                    'assets/images/coin.png',
+                    width: 22,
+                    height: 22,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    '${item['price']}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontFamily: 'Questrial',
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -170,33 +211,49 @@ class _StorePageState extends State<StorePage> {
       backgroundColor: const Color(0xFFFFF3E0),
       appBar: AppBar(
         backgroundColor: Colors.brown[800],
+        centerTitle: true,
         title: const Text(
           'STORE',
           style: TextStyle(
-            fontWeight: FontWeight.bold,
+            fontFamily: 'Modak',
+            fontSize: 30, // a bit smaller than before
             color: Colors.white,
             letterSpacing: 1.5,
           ),
         ),
-        centerTitle: true,
       ),
       body: Column(
         children: [
-          // 💰 Coin Display
+          // 💰 Coin Display (with rounded box)
           Container(
-            color: Colors.brown[700],
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const Icon(Icons.monetization_on, color: Colors.yellow),
-                const SizedBox(width: 6),
-                Text(
-                  '$coins',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.brown[500],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        'assets/images/coin.png',
+                        width: 30,
+                        height: 30,
+                      ),
+                      Text(
+                        '$coins',
+                        style: const TextStyle(
+                          fontFamily: 'Questrial',
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
