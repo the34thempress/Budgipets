@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 class LogEntryController {
   final TextEditingController noteController = TextEditingController();
+
+  TextEditingController amountController = TextEditingController();
+  
   String selectedType = 'Expense';
   String selectedCategory = '';
 
