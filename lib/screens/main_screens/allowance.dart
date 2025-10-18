@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dashboard.dart';
 import 'package:budgipets/controllers/allowance_page_controller.dart';
 import 'package:budgipets/widgets/category_grid.dart';
 import 'package:budgipets/widgets/note_input.dart';
@@ -91,33 +90,77 @@ class _LogEntryPageState extends State<LogEntryPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6B3E1D),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        "₱349.00",
+
+//amount text
+                const SizedBox(height: 8),
+                const Text(
+                  "Amount",
+                  style: TextStyle(
+                    fontFamily: "Modak",
+                    fontSize: 18,
+                    color: Color(0xFF6B3E1D),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+//input amount
+                  Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6B3E1D),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "₱",
                         style: TextStyle(
-                          fontFamily: "PixelifySans-VariableFont_wght",
-                          fontSize: 28,
                           color: Colors.white,
+                          fontSize: 28,
+                          fontFamily: "PixelifySans-VariableFont_wght",
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "Tags",
-                      style: TextStyle(
-                        fontFamily: "Modak",
-                        fontSize: 18,
-                        color: Color(0xFF6B3E1D),
+                      const SizedBox(width: 6),
+//Editable input
+                      Expanded(
+                        child: TextField(
+                          controller: controller.amountController,
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(
+                            fontFamily: "PixelifySans-VariableFont_wght",
+                            fontSize: 20,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.left,
+                          decoration: const InputDecoration(
+                            hintText: "Enter amount",
+                            hintStyle: TextStyle(
+                              color: Colors.white54,
+                              fontFamily: "PixelifySans-VariableFont_wght",
+                            ),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+//tags text
+                const Text(
+                  "Tags",
+                  style: TextStyle(
+                    fontFamily: "Modak",
+                    fontSize: 18,
+                    color: Color(0xFF6B3E1D),
+                  ),
+                ),
+                const SizedBox(height: 8),
 
 //tags/category
                     CategoryGrid(
