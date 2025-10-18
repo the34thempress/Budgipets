@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:budgipets/widgets/main_page_nav_header.dart';
 
 class StorePage extends StatefulWidget {
   const StorePage({super.key});
@@ -220,61 +221,67 @@ class _StorePageState extends State<StorePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: pageColor,
-      appBar: AppBar(
-        backgroundColor: darkBrown,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        centerTitle: true,
-        title: const Text(
-          'STORE',
-          style: TextStyle(
-            fontFamily: 'Modak',
-            fontSize: 34,
-            color: Colors.white,
-            letterSpacing: 2,
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFFFF3E0),
+    body: Column(
+      children: [
+        CommonHeader(
+  child: const Text(
+    'Store',
+    style: TextStyle(
+      fontFamily: 'Modak',
+      fontSize: 28,
+      color: Color(0xFFFDE6D0),
+    ),
+  ),
+),
+        // 💰 Coin Display (with rounded box)
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.brown[500],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/coin.png',
+                      width: 30,
+                      height: 30,
+                    ),
+                    Text(
+                      '$coins',
+                      style: const TextStyle(
+                        fontFamily: 'Questrial',
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: darkBrown,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Row(
-              children: [
-                Image.asset(
-                  'assets/images/coin.png',
-                  width: 22,
-                  height: 22,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '$coins',
-                  style: const TextStyle(
-                    fontFamily: 'Questrial',
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+
+        // 🛍 Store Items
+        Expanded(
+          child: ListView.builder(
+            itemCount: storeItems.length,
+            itemBuilder: (context, index) {
+              return _buildStoreItem(storeItems[index]);
+            },
           ),
-        ],
-      ),
-      body: ListView.builder(
-        itemCount: storeItems.length,
-        itemBuilder: (context, index) {
-          return _buildStoreItem(storeItems[index]);
-        },
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }
