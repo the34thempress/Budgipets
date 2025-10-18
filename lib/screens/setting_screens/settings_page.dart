@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:budgipets/screens/main_screens/profile_page.dart';
+import 'package:budgipets/widgets/main_page_nav_header.dart';
+import 'package:budgipets/screens/main_screens/dashboard.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -10,36 +12,33 @@ class SettingsPage extends StatelessWidget {
       backgroundColor: const Color(0xFFFDE6D0),
       body: Column(
         children: [
-          Container(
-            color: const Color(0xFF6A3A0A),
-            padding: const EdgeInsets.only(top: 40, left: 16, right: 16, bottom: 20),
+//widget main_page_nav
+          CommonHeader(
+            onBack: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const DashboardPage()),
+              );
+            },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () {},
+                const Text(
+                  "Settings",
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFFDE6D0),
+                  ),
                 ),
-                Row(
-                  children: [
-                    const Text(
-                      "Settings",
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFFDE6D0),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Image.asset(
-                      "assets/images/pet.png", // placeholder dog image
-                      height: 50,
-                    ),
-                  ],
+                Image.asset(
+                  "assets/images/pet.png",
+                  height: 50,
                 ),
               ],
             ),
           ),
+
           const SizedBox(height: 30),
           _settingsButton(context, "Change Email"),
           _settingsButton(context, "Change Password"),

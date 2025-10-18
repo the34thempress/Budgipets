@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:budgipets/widgets/main_page_nav_header.dart';
 
 class StorePage extends StatefulWidget {
   const StorePage({super.key});
@@ -206,71 +207,67 @@ class _StorePageState extends State<StorePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFF3E0),
-      appBar: AppBar(
-        backgroundColor: Colors.brown[800],
-        centerTitle: true,
-        title: const Text(
-          'STORE',
-          style: TextStyle(
-            fontFamily: 'Modak',
-            fontSize: 30, // a bit smaller than before
-            color: Colors.white,
-            letterSpacing: 1.5,
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFFFF3E0),
+    body: Column(
+      children: [
+        CommonHeader(
+  child: const Text(
+    'Store',
+    style: TextStyle(
+      fontFamily: 'Modak',
+      fontSize: 28,
+      color: Color(0xFFFDE6D0),
+    ),
+  ),
+),
+        // 💰 Coin Display (with rounded box)
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.brown[500],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/coin.png',
+                      width: 30,
+                      height: 30,
+                    ),
+                    Text(
+                      '$coins',
+                      style: const TextStyle(
+                        fontFamily: 'Questrial',
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-      ),
-      body: Column(
-        children: [
-          // 💰 Coin Display (with rounded box)
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.brown[500],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        'assets/images/coin.png',
-                        width: 30,
-                        height: 30,
-                      ),
-                      Text(
-                        '$coins',
-                        style: const TextStyle(
-                          fontFamily: 'Questrial',
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
 
-          // 🛍 Store Items
-          Expanded(
-            child: ListView.builder(
-              itemCount: storeItems.length,
-              itemBuilder: (context, index) {
-                return _buildStoreItem(storeItems[index]);
-              },
-            ),
+        // 🛍 Store Items
+        Expanded(
+          child: ListView.builder(
+            itemCount: storeItems.length,
+            itemBuilder: (context, index) {
+              return _buildStoreItem(storeItems[index]);
+            },
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }
