@@ -65,10 +65,16 @@ flutter:
     - assets/images/cat_egg.png
     - assets/images/streakfreeze.png
     - assets/images/coin.png
+    - assets/images/pet_background.jpg
+    - assets/images/user.png
 
   fonts:
     - family: Questrial
       fonts:
         - asset: assets/fonts/Questrial-Regular.ttf
+    - family: Modak
+      fonts:
         - asset: assets/fonts/Modak-Regular.ttf
+    - family: PixelifySans
+      fonts:
         - asset: assets/fonts/PixelifySans-VariableFont_wght.ttf
