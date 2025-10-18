@@ -35,7 +35,6 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   table_calendar: ^3.0.9
-  carousel_slider: ^5.0.0
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +66,7 @@ flutter:
     - assets/images/streakfreeze.png
     - assets/images/coin.png
     - assets/images/pet_background.jpg
+    - assets/images/user.png
 
   fonts:
     - family: Questrial

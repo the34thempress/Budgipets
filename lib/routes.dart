@@ -6,6 +6,7 @@ import 'screens/main_screens/dashboard.dart';
 import 'screens/setting_screens/settings_page.dart';
 import 'screens/main_screens/store.dart';
 import 'screens/main_screens/pet_management.dart';
+import 'screens/main_screens/allowance.dart';
 
 class Routes {
   static const String login = '/login';
@@ -15,6 +16,7 @@ class Routes {
   static const String settings = '/settings';
   static const String store = '/store';
   static const String pet_management = '/pet_management';
+  static const String allowance = '/allowance';
 
   static Map<String, WidgetBuilder> routes = {
     login: (context) => LoginPage(),
@@ -24,5 +26,6 @@ class Routes {
     settings: (context) => SettingsPage(),
     store: (context) => StorePage(),
     pet_management: (context) => PetManagementPage(),
+    allowance: (context) => LogEntryPage(),
   };
 }
