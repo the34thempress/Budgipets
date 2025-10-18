@@ -5,6 +5,7 @@ import 'screens/setting_screens/profile_page.dart';
 import 'screens/main_screens/dashboard.dart';
 import 'screens/setting_screens/settings_page.dart';
 import 'screens/main_screens/store.dart';
+import 'screens/main_screens/pet_management.dart';
 
 class Routes {
   static const String login = '/login';
@@ -13,6 +14,7 @@ class Routes {
   static const String dashboard = '/dashboard';
   static const String settings = '/settings';
   static const String store = '/store';
+  static const String pet_management = '/pet_management';
 
   static Map<String, WidgetBuilder> routes = {
     login: (context) => LoginPage(),
@@ -20,6 +22,7 @@ class Routes {
     profile: (context) => ProfilePage(),
     dashboard: (context) => DashboardPage(),
     settings: (context) => SettingsPage(),
-    store: (context) => StorePage()
+    store: (context) => StorePage(),
+    pet_management: (context) => PetManagementPage(),
   };
 }
