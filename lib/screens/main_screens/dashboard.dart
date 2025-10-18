@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:budgipets/screens/main_screens/allowance.dart';
+import 'package:budgipets/screens/main_screens/store.dart';
+import 'package:budgipets/screens/setting_screens/settings_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -155,27 +157,44 @@ class _DashboardPageState extends State<DashboardPage> {
 
 
       // ===== Bottom Navigation =====
-bottomNavigationBar: BottomNavigationBar(
-  backgroundColor: const Color(0xFF6B3E1D),
-  selectedItemColor: Colors.orange,
-  unselectedItemColor: Colors.white,
-  currentIndex: 0, // optional
-  onTap: (index) {
-    if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => LogEntryPage()),
-      );
-    }
-  },
-  items: const [
-    BottomNavigationBarItem(icon: Icon(Icons.pets), label: "Pet"),
-    BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-    BottomNavigationBarItem(icon: Icon(Icons.money), label: "Allowance"),
-    BottomNavigationBarItem(icon: Icon(Icons.list), label: "Logs"),
-    BottomNavigationBarItem(icon: Icon(Icons.store), label: "Store"),
-  ],
-),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color(0xFF6B3E1D),
+        selectedItemColor: Colors.orange,
+        unselectedItemColor: Colors.orange,
+        currentIndex: 0,
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
+        onTap: (index) {
+
+          if (index == 0) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SettingsPage()),
+            );
+          }
+
+          if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => LogEntryPage()),
+            );
+          }
+
+          if (index == 4) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => StorePage()),
+            );
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
+          BottomNavigationBarItem(icon: Icon(Icons.pets), label: "Pet"),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: "Add"),
+          BottomNavigationBarItem(icon: Icon(Icons.description), label: "Logs"),
+          BottomNavigationBarItem(icon: Icon(Icons.store), label: "Store"),
+        ],
+      ),
 
 
     );

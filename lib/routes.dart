@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/login_screens/login.dart';
 import 'screens/login_screens/create_account.dart';
-import 'screens/setting_screens/profile_page.dart';
+import 'screens/main_screens/profile_page.dart';
 import 'screens/main_screens/dashboard.dart';
 import 'screens/setting_screens/settings_page.dart';
 import 'screens/main_screens/store.dart';
