@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'profile_page.dart';
+import 'package:budgipets/screens/main_screens/profile_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -32,7 +32,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Image.asset(
-                      "assets/dog_placeholder.png", // placeholder dog image
+                      "assets/images/pet.png", // placeholder dog image
                       height: 50,
                     ),
                   ],
