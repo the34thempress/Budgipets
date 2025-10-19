@@ -10,7 +10,7 @@ class NoteInput extends StatelessWidget {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
-        hintText: "Optional",
+        hintText: "(optional)",
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.all(10),
