@@ -105,51 +105,54 @@ class _LogEntryPageState extends State<LogEntryPage>
 
 //input amount
                   Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF6B3E1D),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "₱",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontFamily: "PixelifySans-VariableFont_wght",
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-//Editable input
-                      Expanded(
-                        child: TextField(
-                          controller: controller.amountController,
-                          keyboardType: TextInputType.number,
-                          style: const TextStyle(
-                            fontFamily: "PixelifySans-VariableFont_wght",
-                            fontSize: 20,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.left,
-                          decoration: const InputDecoration(
-                            hintText: "Enter amount",
-                            hintStyle: TextStyle(
-                              color: Colors.white54,
-                              fontFamily: "PixelifySans-VariableFont_wght",
-                            ),
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
+  width: double.infinity,
+  padding: const EdgeInsets.symmetric(horizontal: 16),
+  decoration: BoxDecoration(
+    color: const Color(0xFFF4D6C1), // same as page background
+    border: Border.all(color: const Color(0xFF6B3E1D), width: 4), // border
+    borderRadius: BorderRadius.circular(10),
+  ),
+  height: 72, // fixed height to match previous box
+  child: Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      // Peso sign
+      const Text(
+        "₱",
+        style: TextStyle(
+          color: Color(0xFF6B3E1D),
+          fontSize: 20,
+          fontFamily: "PixelifySans-VariableFont_wght",
+        ),
+      ),
+      const SizedBox(width: 6),
+      // Editable input
+      Expanded(
+        child: TextField(
+          controller: controller.amountController,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(
+            fontFamily: "PixelifySans-VariableFont_wght",
+            fontSize: 15,
+            color: Color(0xFF6B3E1D),
+          ),
+          textAlign: TextAlign.left,
+          decoration: const InputDecoration(
+            hintText: "(amount you have spent)",
+            hintStyle: TextStyle(
+              color: Colors.black38,
+              fontFamily: "PixelifySans-VariableFont_wght",
+            ),
+            border: InputBorder.none,
+            isDense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      ),
+    ],
+  ),
+),
+const SizedBox(height: 20),
 
 //tags text
                 const Text(
