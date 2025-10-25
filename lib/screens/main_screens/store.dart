@@ -227,49 +227,46 @@ Widget build(BuildContext context) {
     body: Column(
       children: [
         CommonHeader(
-  child: const Text(
-    'Store',
-    style: TextStyle(
-      fontFamily: 'Modak',
-      fontSize: 28,
-      color: Color(0xFFFDE6D0),
-    ),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      const Text(
+        'STORE',
+        style: TextStyle(
+          fontFamily: 'Modak',
+          fontSize: 40,
+          color: Color(0xFFFDE6D0),
+        ),
+      ),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.brown,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Image.asset(
+              'assets/images/coin.png',
+              width: 26,
+              height: 26,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              '$coins',
+              style: const TextStyle(
+                fontFamily: 'Questrial',
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
   ),
 ),
-        // 💰 Coin Display (with rounded box)
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.brown[500],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Image.asset(
-                      'assets/images/coin.png',
-                      width: 30,
-                      height: 30,
-                    ),
-                    Text(
-                      '$coins',
-                      style: const TextStyle(
-                        fontFamily: 'Questrial',
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
 
         // 🛍 Store Items
         Expanded(
