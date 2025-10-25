@@ -23,29 +23,31 @@ class LogsPage extends StatelessWidget {
         children: [
           // ✅ All title + pet info moved inside header
           CommonHeader(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Your Logs", style: titleStyle(30)),
-                      const SizedBox(height: 4),
-                      Text(
-                        "Here you’ll find all your logged\nexpenses and income!",
-                        style: bodyStyle(14),
-                      ),
-                    ],
-                  ),
-                ),
-                Image.asset(
-                  'assets/images/pet.png',
-                  width: 130,
-                  height: 130,
-                )
-              ],
+  goToDashboard: true, // ✅ Forces redirect to Dashboard
+  child: Row(
+    children: [
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Your Logs", style: titleStyle(30)),
+            const SizedBox(height: 4),
+            Text(
+              "Here you’ll find all your logged\nexpenses and income!",
+              style: bodyStyle(14),
             ),
-          ),
+          ],
+        ),
+      ),
+      Image.asset(
+        'assets/images/pet.png',
+        width: 130,
+        height: 130,
+      )
+    ],
+  ),
+),
+
 
           // ✅ Scrollable main content stays
           Expanded(
