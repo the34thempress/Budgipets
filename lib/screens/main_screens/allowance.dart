@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dashboard.dart';
 import 'package:budgipets/controllers/allowance_page_controller.dart';
 import 'package:budgipets/widgets/category_grid.dart';
 import 'package:budgipets/widgets/note_input.dart';
@@ -91,33 +90,80 @@ class _LogEntryPageState extends State<LogEntryPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6B3E1D),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        "₱349.00",
-                        style: TextStyle(
-                          fontFamily: "PixelifySans-VariableFont_wght",
-                          fontSize: 28,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "Tags",
-                      style: TextStyle(
-                        fontFamily: "Modak",
-                        fontSize: 18,
-                        color: Color(0xFF6B3E1D),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+
+//amount text
+                const SizedBox(height: 8),
+                const Text(
+                  "Amount",
+                  style: TextStyle(
+                    fontFamily: "Modak",
+                    fontSize: 18,
+                    color: Color(0xFF6B3E1D),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+//input amount
+                  Container(
+  width: double.infinity,
+  padding: const EdgeInsets.symmetric(horizontal: 16),
+  decoration: BoxDecoration(
+    color: const Color(0xFFF4D6C1), // same as page background
+    border: Border.all(color: const Color(0xFF6B3E1D), width: 4), // border
+    borderRadius: BorderRadius.circular(10),
+  ),
+  height: 72, // fixed height to match previous box
+  child: Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      // Peso sign
+      const Text(
+        "₱",
+        style: TextStyle(
+          color: Color(0xFF6B3E1D),
+          fontSize: 20,
+          fontFamily: "PixelifySans-VariableFont_wght",
+        ),
+      ),
+      const SizedBox(width: 6),
+      // Editable input
+      Expanded(
+        child: TextField(
+          controller: controller.amountController,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(
+            fontFamily: "PixelifySans-VariableFont_wght",
+            fontSize: 15,
+            color: Color(0xFF6B3E1D),
+          ),
+          textAlign: TextAlign.left,
+          decoration: const InputDecoration(
+            hintText: "(amount you have spent)",
+            hintStyle: TextStyle(
+              color: Colors.black38,
+              fontFamily: "PixelifySans-VariableFont_wght",
+            ),
+            border: InputBorder.none,
+            isDense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      ),
+    ],
+  ),
+),
+const SizedBox(height: 20),
+
+//tags text
+                const Text(
+                  "Tags",
+                  style: TextStyle(
+                    fontFamily: "Modak",
+                    fontSize: 18,
+                    color: Color(0xFF6B3E1D),
+                  ),
+                ),
+                const SizedBox(height: 8),
 
 //tags/category
                     CategoryGrid(
