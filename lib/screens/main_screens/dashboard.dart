@@ -4,6 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:budgipets/screens/main_screens/allowance.dart';
 import 'package:budgipets/screens/main_screens/store.dart';
 import 'package:budgipets/screens/setting_screens/settings_page.dart';
+import 'package:budgipets/screens/main_screens/logs.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -261,6 +262,13 @@ class _DashboardPageState extends State<DashboardPage> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => LogEntryPage()),
+            );
+          }
+
+           if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => LogsPage()),
             );
           }
 
