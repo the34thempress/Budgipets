@@ -30,8 +30,7 @@ class LogsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Your Logs", style: titleStyle(30)),
-            const SizedBox(height: 4),
+            Text("Your Logs", style: TextStyle(fontFamily: 'Modak', fontSize: 50, color: Colors.white)),
             Text(
               "Here you’ll find all your logged\nexpenses and income!",
               style: bodyStyle(14),

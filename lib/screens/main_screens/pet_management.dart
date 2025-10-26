@@ -161,7 +161,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
                     // 🪞 Wardrobe — bigger, scrollable, no overflow
                     _carouselCard(
                       title: 'Wardrobe',
-                      height: 150, // made larger
+                      height: 165, // made larger
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -194,7 +194,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
                     // 🎒 Inventory — bigger, scrollable, no overflow
                     _carouselCard(
                       title: 'Inventory',
-                      height: 150, // made larger
+                      height: 165, // made larger
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -208,7 +208,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
                                     Container(
                                       width: 75,
                                       height: 75,
-                                      padding: const EdgeInsets.all(8),
+                                      padding: const EdgeInsets.all(5),
                                       decoration: BoxDecoration(
                                         color: Colors.transparent,
                                         borderRadius: BorderRadius.circular(10),
@@ -219,12 +219,11 @@ class _PetManagementPageState extends State<PetManagementPage> {
                                         fit: BoxFit.contain,
                                       ),
                                     ),
-                                    const SizedBox(height: 6),
                                     Text(
                                       (rotatedInventory[i]['count']).toString(),
                                       style: const TextStyle(
                                         fontFamily: 'Questrial',
-                                        fontSize: 14,
+                                        fontSize: 17,
                                         color: Color(0xFFFDE6D0),
                                       ),
                                     ),
