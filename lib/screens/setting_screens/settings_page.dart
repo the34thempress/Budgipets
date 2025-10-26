@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:budgipets/controllers/audio_manager.dart';
 import 'package:budgipets/screens/main_screens/profile_page.dart';
 import 'package:budgipets/widgets/main_page_nav_header.dart';
 import 'package:budgipets/screens/main_screens/dashboard.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  final AudioService _audioManager = AudioService();
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {}); // refresh toggle text initially
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +26,7 @@ class SettingsPage extends StatelessWidget {
       backgroundColor: const Color(0xFFFDE6D0),
       body: Column(
         children: [
-//widget main_page_nav
+          //header
           CommonHeader(
             onBack: () {
               Navigator.pushReplacement(
@@ -22,54 +36,70 @@ class SettingsPage extends StatelessWidget {
             },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
+              children: const [
+                Text(
                   "Settings",
                   style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
+                    fontFamily: "Modak",
+                    fontSize: 40,
                     color: Color(0xFFFDE6D0),
                   ),
-                ),
-                Image.asset(
-                  "assets/images/pet.png",
-                  height: 50,
-                ),
+                )
               ],
             ),
           ),
 
           const SizedBox(height: 30),
+
           _settingsButton(context, "Change Email"),
           _settingsButton(context, "Change Password"),
           _settingsButton(context, "Change Profile Picture"),
-          _settingsButton(context, "Music : ON"),
+
+          // ✅ Music toggle button
+          _settingsButton(
+            context,
+            "Music : ${_audioManager.isPlaying ? "ON" : "OFF"}",
+            onTap: () async {
+              await _audioManager.toggleMusic();
+              setState(() {}); // refresh the button state
+            },
+          ),
+
           _settingsButton(context, "Notifications : ON"),
         ],
       ),
     );
   }
 
-  Widget _settingsButton(BuildContext context, String label) {
+  Widget _settingsButton(
+    BuildContext context,
+    String label, {
+    VoidCallback? onTap,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF6A3A0A),
           minimumSize: const Size.fromHeight(50),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
         onPressed: () {
           if (label == "Change Profile Picture") {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ProfilePage()),
+              MaterialPageRoute(builder: (_) => const ProfilePage()),
             );
+          } else if (onTap != null) {
+            onTap();
           }
         },
         child: Text(
           label,
           style: const TextStyle(
+            fontFamily: "Questrial",
             color: Colors.white,
             fontSize: 16,
           ),

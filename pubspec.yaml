@@ -37,6 +37,7 @@ dependencies:
   table_calendar: ^3.0.9
   image_picker: ^1.0.5
   permission_handler: ^11.3.1
+  audioplayers: ^5.2.1
 
   
 dev_dependencies:
@@ -70,6 +71,7 @@ flutter:
     - assets/images/coin.png
     - assets/images/pet_background.jpg
     - assets/images/user.png
+    - assets/audio/background_music.mp3
 
   fonts:
     - family: Questrial
