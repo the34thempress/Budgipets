@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Budgipets",
-      initialRoute: Routes.settings,  // start at login
+      initialRoute: Routes.login,  // start at login
       routes: Routes.routes,
     );
   }
