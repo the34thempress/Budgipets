@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'create_account.dart'; // import your create_account page
 import '../main_screens/dashboard.dart';     // import your dashboard page
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -29,24 +30,58 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // Hardcoded credentials
-  final String _validUsername = "admin";
-  final String _validPassword = "12345";
+  //login 
+  void _login() async {
+    final email = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
 
-  void _login() {
-    if (_usernameController.text == _validUsername &&
-        _passwordController.text == _validPassword) {
-      // Navigate to dashboard if login successful
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter both email and password")),
+      );
+      return;
+    }
+
+    try {
+      final supabase = Supabase.instance.client;
+      final response = await supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = response.user;
+
+      if (user != null) {
+
+        //for email verification
+        if (user.emailConfirmedAt == null) {
+        //unverified will get blocked access
+          await supabase.auth.signOut();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Please verify your email before logging in."),
+            ),
+          );
+          return;
+        }
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const DashboardPage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid username or password")),
+        const SnackBar(content: Text("Invalid email or password")),
       );
     }
+  } catch (error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: ${error.toString()}")),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               // Logo
               Image.asset(
-                "assets/images/logo.png", // replace with your BudgiPets logo
+                "assets/images/logo.png", 
                 height: 200,
               ),
               const SizedBox(height: 20),
@@ -71,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 20,
-                  color: Color(0xFF4A2C1A), // dark brown
+                  color: Color(0xFF4A2C1A),
                 ),
               ),
               const SizedBox(height: 40),
@@ -85,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: TextField(
                   controller: _usernameController,
                   decoration: const InputDecoration(
-                    hintText: "Username",
+                    hintText: "Email",
                     hintStyle: TextStyle(color: Colors.grey),
                     prefixIcon: Icon(
                       Icons.person,
@@ -127,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 55,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6A3B18), // brown button
+                    backgroundColor: const Color(0xFF6A3B18), 
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(40)),
                     ),
@@ -144,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 30),
 
-              // Don't have account (Clickable)
+              //signup button
               GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -154,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   );
                 },
                 child: const Text(
-                  "Don’t Have An Account?",
+                  "Sign Up",
                   style: TextStyle(
                     fontSize: 16,
                     color: Color(0xFF4A2C1A),
@@ -164,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 20),
 
-              // OR divider
+              //Divider
               const Row(
                 children: [
                   Expanded(
@@ -187,7 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Forgot password
+              //Forgot password (wala)
               const Text(
                 "Forgot Password",
                 style: TextStyle(
