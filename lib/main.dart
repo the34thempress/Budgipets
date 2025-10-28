@@ -21,8 +21,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Budgipets',
-      initialRoute: Routes.login,
+      title: "Budgipets",
+      initialRoute: Routes.login,  // start at login
       routes: Routes.routes,
     );
   }
