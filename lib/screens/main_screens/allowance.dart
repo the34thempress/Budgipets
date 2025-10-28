@@ -32,54 +32,72 @@ class _LogEntryPageState extends State<LogEntryPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "What would you like to log?",
-                        style: TextStyle(
-                          fontFamily: "Modak",
-                          fontSize: 20,
-                          color: Color(0xFFFDE6D0),
+                  Column(
+  crossAxisAlignment: CrossAxisAlignment.center,
+  children: [
+    // Title text
+    const Text(
+      "What would you like to log?",
+      style: TextStyle(
+        fontFamily: "Modak",
+        fontSize: 25,
+        color: Color(0xFFFDE6D0),
+      ),
+    ),
+    const SizedBox(height: 10),
+
+    // Row with dropdown + pet
+    Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Dropdown half width
+        SizedBox(
+          width: MediaQuery.of(context).size.width * 0.5,
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFFDE6D0),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: DropdownButton<String>(
+              value: controller.selectedType,
+              dropdownColor: const Color(0xFFFDE6D0),
+              isExpanded: true,
+              underline: const SizedBox(),
+              icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF6B3E1D)),
+              items: ['Expense', 'Income']
+                  .map((type) => DropdownMenuItem(
+                        value: type,
+                        child: Text(
+                          type,
+                          style: const TextStyle(
+                            color: Color(0xFF6B3E1D),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      Image.asset("assets/images/pet.png", height: 60),
-                    ],
-                  ),
-                    const SizedBox(height: 10),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFDE6D0),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: DropdownButton<String>(
-                        value: controller.selectedType,
-                        dropdownColor: const Color(0xFFFDE6D0),
-                        isExpanded: true,
-                        underline: const SizedBox(),
-                        icon: const Icon(Icons.arrow_drop_down,
-                            color: Color(0xFF6B3E1D)),
-                        items: ['Expense', 'Income']
-                            .map((type) => DropdownMenuItem(
-                                  value: type,
-                                  child: Text(
-                                    type,
-                                    style: const TextStyle(
-                                      color: Color(0xFF6B3E1D),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            controller.selectedType = value!;
-                            controller.selectedCategory = '';
-                          });
-                        },
-                      ),
-                    ),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  controller.selectedType = value!;
+                  controller.selectedCategory = '';
+                });
+              },
+            ),
+          ),
+        ),
+
+        // Pet image bigger
+        Image.asset(
+          "assets/images/pet.png",
+          height: 80,
+          fit: BoxFit.contain,
+        ),
+      ],
+    ),
+  ],
+),
                   ],
                 ),
               ),
@@ -105,54 +123,53 @@ class _LogEntryPageState extends State<LogEntryPage>
 
 //input amount
                   Container(
-  width: double.infinity,
-  padding: const EdgeInsets.symmetric(horizontal: 16),
-  decoration: BoxDecoration(
-    color: const Color(0xFFF4D6C1), // same as page background
-    border: Border.all(color: const Color(0xFF6B3E1D), width: 4), // border
-    borderRadius: BorderRadius.circular(10),
-  ),
-  height: 72, // fixed height to match previous box
-  child: Row(
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      // Peso sign
-      const Text(
-        "₱",
-        style: TextStyle(
-          color: Color(0xFF6B3E1D),
-          fontSize: 20,
-          fontFamily: "PixelifySans-VariableFont_wght",
-        ),
-      ),
-      const SizedBox(width: 6),
-      // Editable input
-      Expanded(
-        child: TextField(
-          controller: controller.amountController,
-          keyboardType: TextInputType.number,
-          style: const TextStyle(
-            fontFamily: "PixelifySans-VariableFont_wght",
-            fontSize: 15,
-            color: Color(0xFF6B3E1D),
-          ),
-          textAlign: TextAlign.left,
-          decoration: const InputDecoration(
-            hintText: "(amount you have spent)",
-            hintStyle: TextStyle(
-              color: Colors.black38,
-              fontFamily: "PixelifySans-VariableFont_wght",
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF4D6C1),
+                    border: Border.all(color: const Color(0xFF6B3E1D), width: 4),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  height: 72,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "₱",
+                        style: TextStyle(
+                          color: Color(0xFF6B3E1D),
+                          fontSize: 20,
+                          fontFamily: "PixelifySans-VariableFont_wght",
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+//Editable input
+                  Expanded(
+                    child: TextField(
+                      controller: controller.amountController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(
+                        fontFamily: "PixelifySans-VariableFont_wght",
+                        fontSize: 15,
+                        color: Color(0xFF6B3E1D),
+                      ),
+                      textAlign: TextAlign.left,
+                      decoration: const InputDecoration(
+                        hintText: "Enter Amount Spent",
+                        hintStyle: TextStyle(
+                          color: Colors.black38,
+                          fontFamily: "PixelifySans-VariableFont_wght",
+                        ),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            border: InputBorder.none,
-            isDense: true,
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-      ),
-    ],
-  ),
-),
-const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
 //tags text
                 const Text(
@@ -174,6 +191,8 @@ const SizedBox(height: 20),
                       },
                     ),
                     const SizedBox(height: 20),
+
+//note
                     const Text(
                       "Note",
                       style: TextStyle(
