@@ -3,6 +3,7 @@ import 'package:budgipets/controllers/audio_manager.dart';
 import 'package:budgipets/screens/main_screens/profile_page.dart';
 import 'package:budgipets/widgets/main_page_nav_header.dart';
 import 'package:budgipets/screens/main_screens/dashboard.dart';
+import 'package:budgipets/screens/login_screens/login.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -17,57 +18,71 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    setState(() {}); // refresh toggle text initially
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFDE6D0),
-      body: Column(
-        children: [
-          //header
-          CommonHeader(
-            onBack: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const DashboardPage()),
-              );
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text(
-                  "Settings",
-                  style: TextStyle(
-                    fontFamily: "Modak",
-                    fontSize: 40,
-                    color: Color(0xFFFDE6D0),
-                  ),
-                )
-              ],
+body: Column(
+  children: [
+    //header
+    CommonHeader(
+      onBack: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardPage()),
+        );
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: const [
+          Text(
+            "Settings",
+            style: TextStyle(
+              fontFamily: "Modak",
+              fontSize: 40,
+              color: Color(0xFFFDE6D0),
             ),
-          ),
-
-          const SizedBox(height: 30),
-
-          _settingsButton(context, "Change Email"),
-          _settingsButton(context, "Change Password"),
-          _settingsButton(context, "Change Profile Picture"),
-
-          // ✅ Music toggle button
-          _settingsButton(
-            context,
-            "Music : ${_audioManager.isPlaying ? "ON" : "OFF"}",
-            onTap: () async {
-              await _audioManager.toggleMusic();
-              setState(() {}); // refresh the button state
-            },
-          ),
-
-          _settingsButton(context, "Notifications : ON"),
+          )
         ],
       ),
+    ),
+
+    const SizedBox(height: 30),
+
+    _settingsButton(context, "Change Email"),
+    _settingsButton(context, "Change Password"),
+    _settingsButton(context, "Change Profile Picture"),
+
+    _settingsButton(
+      context,
+      "Music : ${_audioManager.isPlaying ? "ON" : "OFF"}",
+      onTap: () async {
+        await _audioManager.toggleMusic();
+        setState(() {});
+      },
+    ),
+
+    _settingsButton(context, "Notifications : ON"),
+
+      _settingsButton(
+        context,
+        "Log out",
+        onTap: () async {
+          // await Supabase.instance.client.auth.signOut(); LATERRRRRRR
+          if (!mounted) return;
+
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginPage()),
+            (route) => false,
+          );
+        },
+      ),
+    ],
+  ),
+
     );
   }
 
