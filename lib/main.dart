@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Budgipets",
-      initialRoute: Routes.login,  // start at login
+      initialRoute: Routes.login,
       routes: Routes.routes,
     );
   }
