@@ -28,7 +28,7 @@ class CommonHeader extends StatelessWidget {
               if (onBack != null) {
                 onBack!();
               } else if (goToDashboard) {
-                // 👇 Replace the page with Dashboard
+
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
