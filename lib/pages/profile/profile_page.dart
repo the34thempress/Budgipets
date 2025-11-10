@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:budgipets/widgets/main_page_nav_header.dart';
-import 'package:budgipets/screens/main_screens/dashboard.dart';
+import 'package:budgipets/pages/dashboard/dashboard.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

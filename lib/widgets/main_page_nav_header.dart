@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:budgipets/screens/main_screens/dashboard.dart';
+import 'package:budgipets/pages/dashboard/dashboard.dart';
 
 class CommonHeader extends StatelessWidget {
   final Widget child;

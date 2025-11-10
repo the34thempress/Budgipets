@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dashboard.dart';
+import '../dashboard/dashboard.dart';
 
 class PetManagementPage extends StatefulWidget {
   const PetManagementPage({super.key});

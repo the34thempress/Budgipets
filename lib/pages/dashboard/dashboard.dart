@@ -1,11 +1,11 @@
-import 'package:budgipets/screens/main_screens/pet_management.dart';
-import 'package:budgipets/screens/main_screens/profile_page.dart';
+import 'package:budgipets/pages/pet/pet_management.dart';
+import 'package:budgipets/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:budgipets/screens/main_screens/allowance.dart';
-import 'package:budgipets/screens/main_screens/store.dart';
-import 'package:budgipets/screens/setting_screens/settings_page.dart';
-import 'package:budgipets/screens/main_screens/logs.dart';
+import 'package:budgipets/pages/logs/allowance.dart';
+import 'package:budgipets/pages/store/store.dart';
+import 'package:budgipets/pages/settings/settings_page.dart';
+import 'package:budgipets/pages/logs/log_history.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DashboardPage extends StatefulWidget {
