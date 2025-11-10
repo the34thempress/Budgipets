@@ -41,7 +41,6 @@ class _LogEntryPageState extends State<LogEntryPage> {
         throw Exception('You are not signed in.');
       }
 
-      // Parse amount
       final raw = controller.amountController.text.trim();
       final normalized = raw.replaceAll(',', '');
       final amount = double.tryParse(normalized);
@@ -49,7 +48,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
         throw Exception('Please enter a valid amount greater than 0.');
       }
 
-      final kind = controller.selectedType; // 'Expense' | 'Income'
+      final kind = controller.selectedType;
       final isExpense = kind == 'Expense';
       final category =
           controller.selectedCategory.isEmpty ? null : controller.selectedCategory;
@@ -57,21 +56,28 @@ class _LogEntryPageState extends State<LogEntryPage> {
           controller.noteController.text.trim().isEmpty ? null : controller.noteController.text.trim();
       final label = (category ?? 'Uncategorized');
 
-      // Ensure this month's budget row exists
       await _ensureBudgetRowExists(supabase, user.id);
 
-      // INSERT into the correct table: public.spend_logs
-      await supabase.from('spend_logs').insert({
+      final data = <String, dynamic>{
         'user_id': user.id,
         'label': label,
         'amount': amount,
-        'kind': kind,          // 'Expense' or 'Income'
-        'category': category,  // nullable
-        'note': note,          // nullable
         'occurred_at': DateTime.now().toIso8601String(),
-      });
+      };
 
-      // Read current balance for this month
+      final kindValue = controller.selectedType ?? 'Expense';
+      data['kind'] = kindValue;
+
+      if (category != null && category.isNotEmpty) {
+        data['category'] = category;
+      }
+      if (note != null && note.isNotEmpty) {
+        data['note'] = note;
+      }
+
+      await supabase.from('spend_logs').insert(data);
+
+
       final ms = _monthStart(DateTime.now());
       final monthStr = _msStr(ms);
       final budgetRow = await supabase
@@ -83,18 +89,15 @@ class _LogEntryPageState extends State<LogEntryPage> {
 
       final currentBalance = (budgetRow['balance'] as num?) ?? 0;
 
-      // Apply delta: Expense -> deduct; Income -> add
       final delta = isExpense ? -amount : amount;
       final newBalance = (currentBalance as num) + delta;
 
-      // Update balance
       await supabase
           .from('budgets')
           .update({'balance': newBalance})
           .eq('user_id', user.id)
           .eq('month_start', monthStr);
 
-      // Clear inputs (keep type/category for speed)
       controller.amountController.clear();
       controller.noteController.clear();
 
@@ -323,7 +326,6 @@ class _LogEntryPageState extends State<LogEntryPage> {
 
                     Center(
                       child: LogButton(
-                        // Always pass a non-null callback; guard inside
                         onPressed: () {
                           if (_isSubmitting) return;
                           _submitLog();

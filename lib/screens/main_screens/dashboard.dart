@@ -16,12 +16,10 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  // ---------- STATE ----------
   num? _balance;
   num? _goal;
   bool _loading = true;
 
-  // Prevent parent navigation while editing / showing dialog
   bool _editingAmount = false;
   bool _dialogOpen = false;
 
@@ -55,7 +53,7 @@ class _DashboardPageState extends State<DashboardPage> {
     super.dispose();
   }
 
-  // ---------- HELPERS ----------
+  //helpers
   DateTime _monthStart(DateTime dt) => DateTime(dt.year, dt.month, 1);
 
   Future<void> _loadOrCreateBudget() async {
@@ -120,23 +118,21 @@ class _DashboardPageState extends State<DashboardPage> {
         _balance = 0;
         _goal = 0;
       });
-      // Non-blocking feedback
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Could not load budget. Showing 0.')),
       );
     }
   }
 
-  // Safe number prompt: captures a stable context, uses rootNavigator, and checks mounted
   Future<num?> _promptNumber({
     required String title,
     required num initial,
   }) async {
-    if (_dialogOpen) return null;        // avoid double dialogs
+    if (_dialogOpen) return null;
     if (!mounted) return null;
 
     _dialogOpen = true;
-    final stable = context;              // capture stable context BEFORE any await
+    final stable = context;
     final controller = TextEditingController(text: initial.toStringAsFixed(2));
 
     num? result;
@@ -157,7 +153,6 @@ class _DashboardPageState extends State<DashboardPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  // Always pop via rootNavigator to match showDialog
                   Navigator.of(stable, rootNavigator: true).pop();
                 },
                 child: const Text("Cancel"),
@@ -166,7 +161,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 onPressed: () {
                   final raw = controller.text.trim().replaceAll(',', '');
                   final v = double.tryParse(raw);
-                  if (v == null || v < 0) return; // ignore invalid
+                  if (v == null || v < 0) return;
                   Navigator.of(stable, rootNavigator: true).pop(v);
                 },
                 child: const Text("Save"),
@@ -220,7 +215,6 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  // ---------- UI ----------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -230,6 +224,7 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+
               // Header
               Container(
                 color: const Color(0xFF5C2E14),
@@ -262,16 +257,18 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ),
 
-              // Balance (tap anywhere -> LogEntryPage; tap number -> edit)
               GestureDetector(
-                onTap: () {
-                  if (_editingAmount || _dialogOpen) return; // block while editing
+                onTap: () async {
+                  if (_editingAmount || _dialogOpen) return;
                   if (!mounted) return;
-                  Navigator.push(
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const LogEntryPage()),
                   );
+                  if (!mounted) return;
+                  await _loadOrCreateBudget();
                 },
+
                 child: Container(
                   color: const Color(0xFFFADEC6),
                   padding:
@@ -513,25 +510,33 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
 
-      // Bottom Navigation Bar (ROUTING UNCHANGED)
+      //Bottom nav
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF5C2E14),
         selectedItemColor: const Color(0xFFFADEC6),
         unselectedItemColor: const Color(0xFFFADEC6),
         currentIndex: 2,
         type: BottomNavigationBarType.fixed,
-        onTap: (index) {
-          if (!mounted || _dialogOpen) return; // don't navigate while a dialog is up
+        onTap: (index) async {
+          if (!mounted || _dialogOpen) return;
           if (index == 0) {
             Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const SettingsPage()));
           } else if (index == 1) {
             Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const PetManagementPage()));
-          } else if (index == 2) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const LogEntryPage()));
-          } else if (index == 3) {
+          }
+          
+          else if (index == 2) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LogEntryPage()),
+            );
+            if (!mounted) return;
+            await _loadOrCreateBudget();
+          }
+
+          else if (index == 3) {
             Navigator.push(
                 context, MaterialPageRoute(builder: (_) => const LogsPage()));
           } else if (index == 4) {
