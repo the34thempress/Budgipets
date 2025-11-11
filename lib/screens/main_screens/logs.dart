@@ -6,7 +6,7 @@ class LogsPage extends StatelessWidget {
   const LogsPage({super.key});
 
   // Colors
-  Color get bgCream => const Color(0xFFF4DCC2);
+  Color get bgCream => const Color(0xFFFDE6D0);
   Color get brown => const Color(0xFF6A3E1C);
 
   TextStyle titleStyle(double size, {Color color = Colors.white}) =>
@@ -30,10 +30,10 @@ class LogsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Your Logs", style: TextStyle(fontFamily: 'Modak', fontSize: 50, color: Colors.white)),
+            Text("Your Logs", style: TextStyle(fontFamily: 'Modak', fontSize: 50, color: Color(0xFFFDE6D0))),
             Text(
               "Here you’ll find all your logged\nexpenses and income!",
-              style: bodyStyle(14),
+              style: bodyStyle(14, color: Color(0xFFFDE6D0)),
             ),
           ],
         ),

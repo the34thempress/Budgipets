@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'create_account.dart'; // import your create_account page
-import '../main_screens/dashboard.dart';     // import your dashboard page
+import '../main_screens/dashboard.dart'; // import your dashboard page
+import 'forgot_password.dart'; // ✅ added import
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatelessWidget {
@@ -14,6 +15,10 @@ class LoginPage extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Questrial',
       ),
+      // ✅ added forgot password route
+      routes: {
+        'forgot_password': (context) => ForgotPasswordPage(),
+      },
       home: const LoginScreen(),
     );
   }
@@ -30,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  //login 
+  // Login function
   void _login() async {
     final email = _usernameController.text.trim();
     final password = _passwordController.text.trim();
@@ -52,12 +57,9 @@ class _LoginScreenState extends State<LoginScreen> {
       final user = response.user;
 
       if (user != null) {
-
-        //for email verification
+        // Check if email is verified
         if (user.emailConfirmedAt == null) {
-        //unverified will get blocked access
           await supabase.auth.signOut();
-
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Please verify your email before logging in."),
@@ -66,22 +68,22 @@ class _LoginScreenState extends State<LoginScreen> {
           return;
         }
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DashboardPage()),
-      );
-    } else {
+        // Go to dashboard if successful
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardPage()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Invalid email or password")),
+        );
+      }
+    } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid email or password")),
+        SnackBar(content: Text("Error: ${error.toString()}")),
       );
     }
-  } catch (error) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error: ${error.toString()}")),
-    );
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               // Logo
               Image.asset(
-                "assets/images/logo.png", 
+                "assets/images/logo.png",
                 height: 200,
               ),
               const SizedBox(height: 20),
@@ -162,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 55,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6A3B18), 
+                    backgroundColor: const Color(0xFF6A3B18),
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(40)),
                     ),
@@ -179,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 30),
 
-              //signup button
+              // Sign up link
               GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -199,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 20),
 
-              //Divider
+              // Divider
               const Row(
                 children: [
                   Expanded(
@@ -222,12 +224,19 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 20),
 
-              //Forgot password (wala)
-              const Text(
-                "Forgot Password",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF4A2C1A),
+              // ✅ Forgot Password link (now functional)
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, 'forgot_password');
+                },
+                child: const Text(
+                  "Forgot Password?",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF4A2C1A),
+                    decoration: TextDecoration.underline,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
