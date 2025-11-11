@@ -7,6 +7,7 @@ import 'package:budgipets/pages/store/store.dart';
 import 'package:budgipets/pages/settings/settings_page.dart';
 import 'package:budgipets/pages/logs/log_history.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:budgipets/pages/dashboard/set_budget_dialog.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -289,14 +290,30 @@ class _DashboardPageState extends State<DashboardPage> {
                         onTap: () async {
                           if (_loading || _dialogOpen) return;
                           _editingAmount = true;
-                          final v = await _promptNumber(
-                            title: "Set Balance",
-                            initial: _balance ?? 0,
-                          );
-                          if (v != null) {
-                            if (!mounted) { _editingAmount = false; return; }
-                            await _updateBudgetField('balance', v);
-                          }
+                          await showDialog(
+                          context: context,
+                          builder: (_) {
+                            return SetBudgetDialog(
+                              currentBudget: _balance ?? 0,
+                              onSave: (newBudget, password) async {
+                                final user = Supabase.instance.client.auth.currentUser;
+                                if (user == null) throw Exception("Not logged in");
+
+                                final result = await Supabase.instance.client.auth.signInWithPassword(
+                                  email: user.email!,
+                                  password: password,
+                                );
+
+                                if (result.session == null) {
+                                  throw Exception("Invalid password");
+                                }
+
+                                await _updateBudgetField('balance', newBudget);
+                              },
+                            );
+                          },
+                        );
+
                           if (mounted) setState(() {});
                           _editingAmount = false;
                         },
@@ -548,8 +565,8 @@ class _DashboardPageState extends State<DashboardPage> {
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
           BottomNavigationBarItem(icon: Icon(Icons.pets), label: "Pet"),
           BottomNavigationBarItem(
-              icon: Icon(Icons.add_circle_rounded), label: "Streak"),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: "Logs"),
+              icon: Icon(Icons.add_circle_rounded), label: "Log"),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: "History"),
           BottomNavigationBarItem(icon: Icon(Icons.storefront), label: "Store"),
         ],
       ),
