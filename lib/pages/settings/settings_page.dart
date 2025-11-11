@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:budgipets/controllers/audio_manager.dart';
-import 'package:budgipets/screens/main_screens/profile_page.dart';
+import 'package:budgipets/pages/profile/profile_page.dart';
 import 'package:budgipets/widgets/main_page_nav_header.dart';
-import 'package:budgipets/screens/main_screens/dashboard.dart';
-import 'package:budgipets/screens/login_screens/login.dart';
+import 'package:budgipets/pages/dashboard/dashboard.dart';
+import 'package:budgipets/pages/auth/login.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});

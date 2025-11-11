@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screens/login.dart';
-import 'screens/login_screens/create_account.dart';
-import 'screens/main_screens/profile_page.dart';
-import 'screens/main_screens/dashboard.dart';
-import 'screens/setting_screens/settings_page.dart';
-import 'screens/main_screens/store.dart';
-import 'screens/main_screens/pet_management.dart';
-import 'screens/main_screens/allowance.dart';
-import 'screens/main_screens/logs.dart';
-import 'screens/login_screens/forgot_password.dart';
+import 'pages/auth/login.dart';
+import 'pages/auth/create_account.dart';
+import 'pages/profile/profile_page.dart';
+import 'pages/dashboard/dashboard.dart';
+import 'pages/settings/settings_page.dart';
+import 'pages/store/store.dart';
+import 'pages/pet/pet_management.dart';
+import 'pages/logs/allowance.dart';
+import 'pages/logs/log_history.dart';
+import 'pages/auth/forgot_password.dart';
 
 class Routes {
   static const String login = '/login';
