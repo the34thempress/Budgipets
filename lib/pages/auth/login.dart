@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'create_account.dart'; // import your create_account page
-import '../main_screens/dashboard.dart';     // import your dashboard page
+import '../dashboard/dashboard.dart';     // import your dashboard page
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatelessWidget {
