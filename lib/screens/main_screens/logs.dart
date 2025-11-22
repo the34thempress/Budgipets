@@ -39,7 +39,7 @@ class LogsPage extends StatelessWidget {
         ),
       ),
       Image.asset(
-        'assets/images/pet.png',
+        'assets/images/dog.png',
         width: 130,
         height: 130,
       )

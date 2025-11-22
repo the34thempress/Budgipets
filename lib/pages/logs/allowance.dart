@@ -215,7 +215,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
                               ),
                             ),
                             Image.asset(
-                              "assets/images/pet.png",
+                              "assets/images/dog.png",
                               height: 80,
                               fit: BoxFit.contain,
                             ),
