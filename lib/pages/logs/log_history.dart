@@ -233,7 +233,7 @@ class _LogsPageState extends State<LogsPage> {
                   ),
                 ),
                 Image.asset(
-                  'assets/images/pet.png',
+                  'assets/images/dog.png',
                   width: 130,
                   height: 130,
                 )

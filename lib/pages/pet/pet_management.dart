@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../dashboard/dashboard.dart';
 
 class PetManagementPage extends StatefulWidget {
@@ -9,11 +11,49 @@ class PetManagementPage extends StatefulWidget {
 }
 
 class _PetManagementPageState extends State<PetManagementPage> {
-  final List<String> wardrobeItems = [
-    'assets/images/shades.png',
-    'assets/images/bow.png',
-    'assets/images/necktie.png',
-  ];
+  // Define accessory positions for each pet type
+  final Map<String, List<Map<String, dynamic>>> petAccessories = {
+    'cat': [
+      {
+        'image': 'assets/images/shades.png',
+        'top': 40.0,
+        'left': 0.0,
+        'width': 120.0,
+      },
+      {
+        'image': 'assets/images/bow.png',
+        'top': 20.0,
+        'left': 0.0,
+        'width': 80.0,
+      },
+      {
+        'image': 'assets/images/necktie.png',
+        'top': 80.0,
+        'left': 0.0,
+        'width': 60.0,
+      },
+    ],
+    'dog': [
+      {
+        'image': 'assets/images/shades.png',
+        'top': 35.0,
+        'left': 15.0,
+        'width': 90.0,
+      },
+      {
+        'image': 'assets/images/bow.png',
+        'top': 20.0,
+        'left': 65.0,
+        'width': 50.0,
+      },
+      {
+        'image': 'assets/images/necktie.png',
+        'top': 115.0,
+        'left': 34.0,
+        'width': 50.0,
+      },
+    ],
+  };
 
   final List<Map<String, dynamic>> inventoryItems = [
     {'image': 'assets/images/coin.png', 'count': 175},
@@ -22,17 +62,48 @@ class _PetManagementPageState extends State<PetManagementPage> {
 
   int wardrobeOffset = 0;
   int inventoryOffset = 0;
+  Set<String> equippedItems = {};
+  String currentPet = 'dog'; // Default pet type
+  bool isLoading = true;
 
-  List<T> rotated<T>(List<T> list, int offset) {
+  @override
+  void initState() {
+    super.initState();
+    _loadPetData();
+  }
+
+  Future<void> _loadPetData() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    setState(() {
+      // Load pet type (default to 'dog')
+      currentPet = prefs.getString('pet_type') ?? 'dog';
+      
+      // Load equipped items
+      final equippedList = prefs.getStringList('equipped_items') ?? [];
+      equippedItems = Set<String>.from(equippedList);
+      
+      isLoading = false;
+    });
+  }
+
+  Future<void> _savePetData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('pet_type', currentPet);
+    await prefs.setStringList('equipped_items', equippedItems.toList());
+  }
+
+  List<dynamic> rotated(List<dynamic> list, int offset) {
     final n = list.length;
     if (n == 0) return [];
-    return List<T>.generate(n, (i) => list[(i + offset) % n]);
+    return List<dynamic>.generate(n, (i) => list[(i + offset) % n]);
   }
 
   void _rotWardrobe(int delta) {
     setState(() {
-      wardrobeOffset = (wardrobeOffset + delta) % wardrobeItems.length;
-      if (wardrobeOffset < 0) wardrobeOffset += wardrobeItems.length;
+      final items = petAccessories[currentPet]!;
+      wardrobeOffset = (wardrobeOffset + delta) % items.length;
+      if (wardrobeOffset < 0) wardrobeOffset += items.length;
     });
   }
 
@@ -43,14 +114,39 @@ class _PetManagementPageState extends State<PetManagementPage> {
     });
   }
 
+  void _toggleEquipItem(String itemPath) {
+    setState(() {
+      if (equippedItems.contains(itemPath)) {
+        equippedItems.remove(itemPath);
+      } else {
+        equippedItems.add(itemPath);
+      }
+      _savePetData(); // Save after each change
+    });
+  }
+
+  void _changePetType(String petType) {
+    setState(() {
+      currentPet = petType;
+      _savePetData();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     const cream = Color(0xFFFDE6D0);
     const brown = Color(0xFF6A3A0A);
     const darkBrown = Color(0xFF5C2C0C);
 
-    final rotatedWardrobe = rotated<String>(wardrobeItems, wardrobeOffset);
-    final rotatedInventory = rotated<Map<String, dynamic>>(inventoryItems, inventoryOffset);
+    final wardrobeItems = petAccessories[currentPet]!;
+    final rotatedWardrobe = rotated(wardrobeItems, wardrobeOffset).cast<Map<String, dynamic>>();
+    final rotatedInventory = rotated(inventoryItems, inventoryOffset).cast<Map<String, dynamic>>();
 
     return Scaffold(
       backgroundColor: cream,
@@ -98,12 +194,65 @@ class _PetManagementPageState extends State<PetManagementPage> {
                     ),
                   ),
 
+                  // Pet type switcher
+                  Positioned(
+                    top: 14,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: brown,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: darkBrown, width: 2),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _petTypeButton('cat', '🐱'),
+                          const SizedBox(width: 8),
+                          _petTypeButton('dog', '🐶'),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Pet with equipped items overlay
                   Positioned(
                     bottom: 18,
-                    child: Image.asset(
-                      'assets/images/pet.png',
+                    child: SizedBox(
                       width: 220,
-                      fit: BoxFit.contain,
+                      height: 220,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Base pet image
+                          Image.asset(
+                              'assets/images/dog.png',  // This will be cat.png or dog.png
+                              width: 220,
+                              fit: BoxFit.contain,
+                            ),
+                          // Overlay each equipped item with custom positioning
+                          ...equippedItems.map((itemPath) {
+                            // Find the item config for current pet
+                            final itemConfig = wardrobeItems.firstWhere(
+                              (item) => item['image'] == itemPath,
+                              orElse: () => {},
+                            );
+                            
+                            if (itemConfig.isEmpty) return const SizedBox.shrink();
+                            
+                            return Positioned(
+                              top: itemConfig['top'] as double,
+                              left: itemConfig['left'] as double,
+                              child: Image.asset(
+                                itemPath,
+                                width: itemConfig['width'] as double,
+                                fit: BoxFit.contain,
+                              ),
+                            );
+                          }).toList(),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -158,10 +307,10 @@ class _PetManagementPageState extends State<PetManagementPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    // 🪞 Wardrobe — bigger, scrollable, no overflow
+                    // 🪞 Wardrobe — with tap to equip multiple items
                     _carouselCard(
                       title: 'Wardrobe',
-                      height: 165, // made larger
+                      height: 165,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -170,16 +319,29 @@ class _PetManagementPageState extends State<PetManagementPage> {
                             for (int i = 0; i < rotatedWardrobe.length; i++)
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                                child: Container(
-                                  width: 75,
-                                  height: 75,
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.transparent,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: darkBrown.withOpacity(0.12)),
+                                child: GestureDetector(
+                                  onTap: () => _toggleEquipItem(rotatedWardrobe[i]['image'] as String),
+                                  child: Container(
+                                    width: 75,
+                                    height: 75,
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: equippedItems.contains(rotatedWardrobe[i]['image'])
+                                          ? cream.withOpacity(0.3)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: equippedItems.contains(rotatedWardrobe[i]['image'])
+                                            ? cream
+                                            : darkBrown.withOpacity(0.12),
+                                        width: equippedItems.contains(rotatedWardrobe[i]['image']) ? 3 : 1,
+                                      ),
+                                    ),
+                                    child: Image.asset(
+                                      rotatedWardrobe[i]['image'] as String,
+                                      fit: BoxFit.contain,
+                                    ),
                                   ),
-                                  child: Image.asset(rotatedWardrobe[i], fit: BoxFit.contain),
                                 ),
                               ),
                           ],
@@ -191,10 +353,10 @@ class _PetManagementPageState extends State<PetManagementPage> {
 
                     const SizedBox(height: 20),
 
-                    // 🎒 Inventory — bigger, scrollable, no overflow
+                    // 🎒 Inventory
                     _carouselCard(
                       title: 'Inventory',
-                      height: 165, // made larger
+                      height: 165,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -243,6 +405,28 @@ class _PetManagementPageState extends State<PetManagementPage> {
               const SizedBox(height: 36),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _petTypeButton(String petType, String emoji) {
+    const cream = Color(0xFFFDE6D0);
+    const darkBrown = Color(0xFF5C2C0C);
+    final isSelected = currentPet == petType;
+    
+    return GestureDetector(
+      onTap: () => _changePetType(petType),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? cream : Colors.transparent,
+          borderRadius: BorderRadius.circular(15),
+          border: isSelected ? Border.all(color: darkBrown, width: 2) : null,
+        ),
+        child: Text(
+          emoji,
+          style: const TextStyle(fontSize: 20),
         ),
       ),
     );

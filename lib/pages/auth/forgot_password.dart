@@ -72,7 +72,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Verification code sent to your email!"),
-          backgroundColor: Colors.green,
+          backgroundColor: Color(0xFF4A2C1A),
         ),
       );
 
@@ -121,7 +121,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Code verified! Now set your new password."),
-          backgroundColor: Colors.green,
+          backgroundColor: Color(0xFF4A2C1A),
         ),
       );
 
@@ -181,7 +181,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Password updated successfully!"),
-          backgroundColor: Colors.green,
+          backgroundColor: Color(0xFF4A2C1A),
         ),
       );
 
