@@ -14,42 +14,42 @@ class _PetManagementPageState extends State<PetManagementPage> {
   // Define accessory positions for each pet type
   final Map<String, List<Map<String, dynamic>>> petAccessories = {
     'cat': [
-      {
+{
         'image': 'assets/images/shades.png',
-        'top': 40.0,
-        'left': 0.0,
-        'width': 120.0,
-      },
-      {
-        'image': 'assets/images/bow.png',
-        'top': 20.0,
-        'left': 0.0,
+        'top': 27.0,
+        'left': 15.0,
         'width': 80.0,
       },
       {
+        'image': 'assets/images/bow.png',
+        'top': 10.0,
+        'left': 45.0,
+        'width': 45.0,
+      },
+      {
         'image': 'assets/images/necktie.png',
-        'top': 80.0,
-        'left': 0.0,
-        'width': 60.0,
+        'top': 115.0,
+        'left': 30.0,
+        'width': 50.0,
       },
     ],
     'dog': [
       {
         'image': 'assets/images/shades.png',
-        'top': 35.0,
+        'top': 30.0,
         'left': 15.0,
         'width': 90.0,
       },
       {
         'image': 'assets/images/bow.png',
-        'top': 20.0,
+        'top': 15.0,
         'left': 65.0,
         'width': 50.0,
       },
       {
         'image': 'assets/images/necktie.png',
         'top': 115.0,
-        'left': 34.0,
+        'left': 40.0,
         'width': 50.0,
       },
     ],
@@ -142,7 +142,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
 
     const cream = Color(0xFFFDE6D0);
     const brown = Color(0xFF6A3A0A);
-    const darkBrown = Color(0xFF5C2C0C);
+    const darkBrown = Color(0xFF5C2E14);
 
     final wardrobeItems = petAccessories[currentPet]!;
     final rotatedWardrobe = rotated(wardrobeItems, wardrobeOffset).cast<Map<String, dynamic>>();
@@ -227,7 +227,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
                         children: [
                           // Base pet image
                           Image.asset(
-                              'assets/images/dog.png',  // This will be cat.png or dog.png
+                              'assets/images/cat.png',  // This will be cat.png or dog.png
                               width: 220,
                               fit: BoxFit.contain,
                             ),

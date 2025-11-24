@@ -1,30 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class ForgotPasswordPage extends StatelessWidget {
+class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'BudgiPets - Forgot Password',
-      theme: ThemeData(
-        fontFamily: 'Questrial',
-      ),
-      home: const ForgotPasswordScreen(),
-    );
-  }
+  State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
 }
 
-class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({super.key});
-
-  @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
-}
-
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
@@ -245,6 +229,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         : "Reset Your Password",
                 textAlign: TextAlign.center,
                 style: const TextStyle(
+                  fontFamily: 'Questrial',
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF4A2C1A),
@@ -261,6 +246,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         : "Enter your email address and we'll\nsend you a verification code",
                 textAlign: TextAlign.center,
                 style: const TextStyle(
+                  fontFamily: 'Questrial',
                   fontSize: 16,
                   color: Color(0xFF4A2C1A),
                 ),
@@ -278,9 +264,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     controller: _emailController,
                     enabled: !_otpSent,
                     keyboardType: TextInputType.emailAddress,
+                    style: const TextStyle(fontFamily: 'Questrial'),
                     decoration: const InputDecoration(
                       hintText: "Email",
-                      hintStyle: TextStyle(color: Colors.grey),
+                      hintStyle: TextStyle(fontFamily: 'Questrial', color: Colors.grey),
                       prefixIcon: Icon(
                         Icons.email,
                         color: Color(0xFF4A2C1A),
@@ -303,9 +290,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: TextField(
                     controller: _otpController,
                     keyboardType: TextInputType.number,
+                    style: const TextStyle(fontFamily: 'Questrial'),
                     decoration: const InputDecoration(
                       hintText: "Verification Code",
-                      hintStyle: TextStyle(color: Colors.grey),
+                      hintStyle: TextStyle(fontFamily: 'Questrial', color: Colors.grey),
                       prefixIcon: Icon(
                         Icons.verified_user,
                         color: Color(0xFF4A2C1A),
@@ -328,9 +316,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: TextField(
                     controller: _newPasswordController,
                     obscureText: true,
+                    style: const TextStyle(fontFamily: 'Questrial'),
                     decoration: const InputDecoration(
                       hintText: "New Password",
-                      hintStyle: TextStyle(color: Colors.grey),
+                      hintStyle: TextStyle(fontFamily: 'Questrial', color: Colors.grey),
                       prefixIcon: Icon(
                         Icons.lock,
                         color: Color(0xFF4A2C1A),
@@ -349,9 +338,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: TextField(
                     controller: _confirmPasswordController,
                     obscureText: true,
+                    style: const TextStyle(fontFamily: 'Questrial'),
                     decoration: const InputDecoration(
                       hintText: "Confirm Password",
-                      hintStyle: TextStyle(color: Colors.grey),
+                      hintStyle: TextStyle(fontFamily: 'Questrial', color: Colors.grey),
                       prefixIcon: Icon(
                         Icons.lock_outline,
                         color: Color(0xFF4A2C1A),
@@ -396,6 +386,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               ? "Update Password" 
                               : (_otpSent ? "Verify Code" : "Send Code"),
                           style: const TextStyle(
+                            fontFamily: 'Questrial',
                             fontSize: 18,
                             color: Colors.white,
                           ),
@@ -411,6 +402,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: const Text(
                     "Resend Code",
                     style: TextStyle(
+                      fontFamily: 'Questrial',
                       fontSize: 16,
                       color: Color(0xFF4A2C1A),
                       decoration: TextDecoration.underline,
@@ -426,6 +418,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 child: const Text(
                   "Back to Sign In",
                   style: TextStyle(
+                    fontFamily: 'Questrial',
                     fontSize: 16,
                     color: Color(0xFF4A2C1A),
                     decoration: TextDecoration.underline,

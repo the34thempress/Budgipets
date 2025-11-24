@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../pages/dashboard/dashboard.dart'; // ✅ Fixed dashboard import
 
 class TutorialScreen extends StatefulWidget {
   const TutorialScreen({Key? key}) : super(key: key);
@@ -14,18 +16,45 @@ class _TutorialScreenState extends State<TutorialScreen> {
   String monthlyAllowance = '';
   String selectedPet = '';
   String petName = '';
+  String displayName = '';
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _allowanceController = TextEditingController();
+  final TextEditingController _displayNameController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
     _allowanceController.dispose();
+    _displayNameController.dispose();
     super.dispose();
   }
 
   void handleNext() {
-    if (currentSlide < 4) {
+    // ✅ Validation for pet selection (slide 3 - after new checklist)
+    if (currentSlide == 3 && selectedPet.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a pet before continuing'),
+          backgroundColor: Color(0xFF6B4423),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    
+    // ✅ Validation for pet name (slide 4)
+    if (currentSlide == 4 && petName.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a name for your pet'),
+          backgroundColor: Color(0xFF6B4423),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    
+    if (currentSlide < 5) { // ✅ Changed from 4 to 5
       setState(() {
         currentSlide++;
       });
@@ -80,13 +109,33 @@ class _TutorialScreenState extends State<TutorialScreen> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Navigate to dashboard or next screen
-              // Navigator.pushReplacement(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => const DashboardScreen()),
-              // );
+            onPressed: () async {
+              // ✅ Save tutorial completion and user data
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('tutorial_completed', true);
+              
+              // Save user choices
+              if (selectedPet.isNotEmpty) {
+                await prefs.setString('selected_pet', selectedPet);
+              }
+              if (petName.isNotEmpty) {
+                await prefs.setString('pet_name', petName);
+              }
+              if (displayName.isNotEmpty) {
+                await prefs.setString('display_name', displayName);
+              }
+              await prefs.setString('user_type', userType);
+              if (monthlyAllowance.isNotEmpty) {
+                await prefs.setString('monthly_allowance', monthlyAllowance);
+              }
+              
+              if (!mounted) return;
+              
+              // ✅ Navigate to dashboard
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const DashboardPage()),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6B4423),
@@ -113,7 +162,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE8C5B5),
+      backgroundColor: const Color(0xFFFADEC6),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
@@ -130,7 +179,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
               Column(
                 children: [
                   ElevatedButton(
-                    onPressed: currentSlide == 4 ? handleFinish : handleNext,
+                    onPressed: currentSlide == 5 ? handleFinish : handleNext, // ✅ Changed from 4 to 5
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6B4423),
                       foregroundColor: Colors.white,
@@ -142,10 +191,10 @@ class _TutorialScreenState extends State<TutorialScreen> {
                         borderRadius: BorderRadius.circular(50),
                       ),
                       elevation: 8,
-                      shadowColor: Colors.black.withOpacity(0.3),
+                      shadowColor: Colors.black.withAlpha(77), // 30% opacity
                     ),
                     child: Text(
-                      currentSlide == 4 ? 'Finish' : 'Next',
+                      currentSlide == 5 ? 'Finish' : 'Next', // ✅ Changed from 4 to 5
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w400,
@@ -156,7 +205,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                   const SizedBox(height: 28),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(5, (index) {
+                    children: List.generate(6, (index) { // ✅ Changed from 5 to 6
                       return GestureDetector(
                         onTap: () => setState(() => currentSlide = index),
                         child: Container(
@@ -193,10 +242,12 @@ class _TutorialScreenState extends State<TutorialScreen> {
       case 1:
         return _buildChecklistSlide();
       case 2:
-        return _buildChoosePetSlide();
+        return _buildChecklist2Slide(); // ✅ New checklist slide
       case 3:
-        return _buildNamePetSlide();
+        return _buildChoosePetSlide();
       case 4:
+        return _buildNamePetSlide();
+      case 5:
         return _buildAllowanceSlide();
       default:
         return Container();
@@ -287,15 +338,50 @@ class _TutorialScreenState extends State<TutorialScreen> {
           _buildChecklistItem(
             'Step 1:',
             'Choose Your Pet',
-            'You start with one but you can collect more by completing missions.',
+            'Your brand new budget accountability buddy! Choose wisely as this pet will accompany you on your budgeting journey.',
             'assets/images/dog_egg.png',
           ),
           const SizedBox(height: 60),
           _buildChecklistItem(
             'Step 2:',
             'Set Your Budget',
-            'This will affect your missions and budgeting suggestions. You can update this later in settings.',
-            'assets/images/dog.png',
+            'Your allowance will determine how much you can spend each month. We will help you keep track!',
+            'assets/images/puppy.png',
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ✅ New checklist slide (identical structure for you to edit)
+  Widget _buildChecklist2Slide() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          const Text(
+            'Checklist', // ✅ Edit this title
+            style: TextStyle(
+              fontSize: 38,
+              color: Color(0xFF6B4423),
+              fontFamily: 'Questrial',
+              fontWeight: FontWeight.w400,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 60),
+          _buildChecklistItem(
+            'Step 3:', // ✅ Edit this
+            'Log Your Transactions', // ✅ Edit this
+            'Make sure you log all your expenses or incomes every day! You will get currency and evolution tokens for your pet!', // ✅ Edit this
+            'assets/images/dog_egg.png', // ✅ Edit this image path
+          ),
+          const SizedBox(height: 60),
+          _buildChecklistItem(
+            'Step 4:', // ✅ Edit this
+            'Go Shopping!', // ✅ Edit this
+            'As you continue to log your transactions, you will have enough currency to buy accessories. Personalize your Budgipet while being financially responsible!', // ✅ Edit this
+            'assets/images/dog.png', // ✅ Edit this image path
           ),
         ],
       ),
@@ -416,16 +502,26 @@ class _TutorialScreenState extends State<TutorialScreen> {
                 width: 4,
               ),
               borderRadius: BorderRadius.circular(20),
+              // ✅ Added shadow for selected pet
+              boxShadow: isSelected ? [
+                BoxShadow(
+                  color: const Color(0xFF6B4423).withAlpha(102), // 40% opacity
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                  spreadRadius: 2,
+                ),
+              ] : null,
             ),
             child: Image.asset(imagePath, width: 125, height: 125),
           ),
           const SizedBox(height: 5),
           Text(
             name,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 26,
-              color: Color(0xFF6B4423),
+              color: const Color(0xFF6B4423),
               fontFamily: 'Questrial',
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, // ✅ Bold when selected
             ),
           ),
           const SizedBox(height: 5),
@@ -556,7 +652,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 60),
-        _buildDropdownField(),
+        _buildDisplayNameField(),
         const SizedBox(height: 40),
         _buildAllowanceField(),
         const SizedBox(height: 50),
@@ -577,7 +673,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
     );
   }
 
-  Widget _buildDropdownField() {
+  Widget _buildDisplayNameField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Container(
@@ -587,7 +683,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
           borderRadius: BorderRadius.circular(50),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withAlpha(38), // 15% opacity
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -611,46 +707,22 @@ class _TutorialScreenState extends State<TutorialScreen> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: userType,
-                    isExpanded: true,
-                    icon: const Padding(
-                      padding: EdgeInsets.only(right: 8),
-                      child: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Color(0xFF6B4423),
-                        size: 28,
-                      ),
-                    ),
-                    style: const TextStyle(
-                      fontSize: 18,
+                child: TextField(
+                  controller: _displayNameController,
+                  onChanged: (value) => setState(() => displayName = value),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Color(0xFF6B4423),
+                    fontFamily: 'Questrial',
+                  ),
+                  decoration: const InputDecoration(
+                    hintText: 'Display Name',
+                    hintStyle: TextStyle(
                       color: Color(0xFFA0A0A0),
                       fontFamily: 'Questrial',
                     ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'Student/Employee',
-                        child: Text('Student/Employee'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Freelancer',
-                        child: Text('Freelancer'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Business Owner',
-                        child: Text('Business Owner'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Other',
-                        child: Text('Other'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => userType = value);
-                      }
-                    },
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
@@ -671,7 +743,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
           borderRadius: BorderRadius.circular(50),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withAlpha(38), // 15% opacity
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -688,7 +760,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.account_circle,
+                  Icons.account_balance_wallet,
                   color: Color(0xFFF5E6D3),
                   size: 26,
                 ),

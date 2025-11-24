@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:budgipets/widgets/main_page_nav_header.dart';
 import 'package:budgipets/pages/dashboard/dashboard.dart';
+import '../auth/delete_account.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -17,10 +18,9 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _passwordVisible = false;
 
   // Hardcoded values (as requested)
-  final String _name = "Jarod";
+  String _name = "Jarod";
   final String _email = "jaroddodo@gmail.com";
   final String _password = "myMadeUpPassword!";
-  final String _mobile = "09814912820";
 
   Future<void> _pickFromGallery() async {
     // Request both storage and photos to cover Android versions
@@ -39,6 +39,124 @@ class _ProfilePageState extends State<ProfilePage> {
     if (picked != null) {
       setState(() => _pickedImage = File(picked.path));
     }
+  }
+
+  void _showEditNameDialog() {
+    final TextEditingController nameController = TextEditingController(text: _name);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: const Color(0xFFF4DCC2),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Edit Display Name',
+                  style: TextStyle(
+                    fontFamily: 'Questrial',
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF4F2A09),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: nameController,
+                  style: const TextStyle(
+                    fontFamily: 'Questrial',
+                    color: Color(0xFF4F2A09),
+                    fontSize: 16,
+                  ),
+                  decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: const BorderSide(color: Color(0xFF4F2A09), width: 2),
+                    ),
+                    labelText: 'Display Name',
+                    labelStyle: const TextStyle(
+                      fontFamily: 'Questrial',
+                      color: Color(0xFF4F2A09),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Cancel button
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF8A4A1F),
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontFamily: 'Questrial',
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Save button
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          if (nameController.text.trim().isNotEmpty) {
+                            setState(() {
+                              _name = nameController.text.trim();
+                            });
+                            Navigator.of(context).pop();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Name cannot be empty!')),
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4F2A09),
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Save',
+                              style: TextStyle(
+                                fontFamily: 'Questrial',
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _label(String text) {
@@ -77,7 +195,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _infoRow(String label, String value, {bool isPassword = false}) {
+  Widget _infoRow(String label, String value, {bool isPassword = false, bool isEditable = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -105,6 +223,15 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Colors.white,
                   ),
                 ),
+              if (isEditable)
+                GestureDetector(
+                  onTap: _showEditNameDialog,
+                  child: const Icon(
+                    Icons.edit,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
             ],
           ),
         ),
@@ -114,132 +241,140 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    // page paddings & sizes tuned to match screenshot proportions
     return Scaffold(
-      backgroundColor: const Color(0xFFF4DCC2), // cream background like screenshot
-      body: Column(
+      backgroundColor: const Color(0xFFF4D6C1),
+      body: Stack(
         children: [
-          // Keep CommonHeader unchanged but pass the child so it shows no text.
-          // The CommonHeader's background is the dark brown; we place the avatar as child so it appears under the back button.
-          CommonHeader(
-            goToDashboard: true,
-            child: SizedBox(
-              width: double.infinity,
-              child: Column(
-                children: [
-                  // Add top spacing so avatar sits lower and overlaps cream
-                  const SizedBox(height: 4),
-                  // Avatar with small edit icon (bottom-right)
-                  Stack(
-                    alignment: Alignment.center,
+          Column(
+            children: [
+              // Header with more height
+              CommonHeader(
+                goToDashboard: true,
+                child: const SizedBox(height: 120), // Increased height for longer header
+              ),
+              
+              // Content area
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
                     children: [
-                      // White circular ring behind avatar to match screenshot
-                      Container(
-                        width: 190,
-                        height: 190,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.06),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            )
-                          ],
+                      const SizedBox(height: 140), // Space for the overlapping avatar
+                      
+                      // Name (big centered) - always under profile picture
+                      Text(
+                        _name,
+                        style: const TextStyle(
+                          fontFamily: 'Questrial',
+                          fontSize: 42,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
                         ),
+                        textAlign: TextAlign.center,
                       ),
 
-                      // Avatar image (tappable)
-                      Positioned(
-                        child: GestureDetector(
-                          onTap: _pickFromGallery,
-                          child: CircleAvatar(
-                            radius: 120,
-                            backgroundColor: Colors.white,
-                            backgroundImage: _pickedImage != null
-                                ? FileImage(_pickedImage!) as ImageProvider
-                                : const AssetImage('assets/images/user.png'),
+                      const SizedBox(height: 10), // Space between name and fields
+
+                      // Fields - always below the display name
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 6),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _infoRow("Display Name", _name, isEditable: true),
+                            const SizedBox(height: 18),
+                            _infoRow("Email Address", _email),
+                            const SizedBox(height: 18),
+                            _infoRow("Password", _password, isPassword: true),
+                            const SizedBox(height: 30),
+
+                            // Deactivate button centered - styling unchanged
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/delete_account');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4F2A09),
+                            padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                           ),
-                        ),
-                      ),
-
-          const SizedBox(height: 100),
-                      // small edit icon at bottom-right of avatar
-                      Positioned(
-                        right: MediaQuery.of(context).size.width / 2 - 60,
-                        bottom: 10,
-                        child: GestureDetector(
-                          onTap: _pickFromGallery,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF4F2A09),
-                              shape: BoxShape.circle,
+                          child: const Text(
+                            "DEACTIVATE ACCOUNT",
+                            style: TextStyle(
+                              fontFamily: 'Questrial',
+                              fontSize: 16,
+                              color: Colors.white,
+                              letterSpacing: 0.6,
                             ),
-                            child: const Icon(Icons.edit, color: Colors.white, size: 18),
                           ),
+                        ),
+                      ),
+
+                            const SizedBox(height: 30),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-
-          // Name (big centered)
-          Text(
-            _name,
-            style: const TextStyle(
-              fontFamily: 'Questrial',
-              fontSize: 42,
-              color: Colors.black,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-
-          const SizedBox(height: 20),
-
-          // Fields — left-aligned and spaced like screenshot
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          
+          // Positioned avatar - bigger and overlaps more
+          Positioned(
+            top: 80, // Positioned to overlap from longer header
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  _infoRow("Display Name", _name),
-                  const SizedBox(height: 18),
-                  _infoRow("Email Address", _email),
-                  const SizedBox(height: 18),
-                  _infoRow("Password", _password, isPassword: true),
-                  const SizedBox(height: 18),
-                  _infoRow("Mobile Number", _mobile),
-                  const SizedBox(height: 30),
-
-                  // Deactivate button centered
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4F2A09),
-                        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                      ),
-                      child: const Text(
-                        "DEACTIVATE ACCOUNT",
-                        style: TextStyle(
-                          fontFamily: 'Questrial',
-                          fontSize: 16,
-                          color: Colors.white,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
+                  // White circular ring behind avatar
+                  Container(
+                    width: 260, // Bigger ring
+                    height: 260,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
                     ),
                   ),
 
-                  const SizedBox(height: 30),
+                  // Avatar image - bigger
+                  GestureDetector(
+                    onTap: _pickFromGallery,
+                    child: CircleAvatar(
+                      radius: 120, // Bigger avatar (240px diameter)
+                      backgroundColor: Colors.white,
+                      backgroundImage: _pickedImage != null
+                          ? FileImage(_pickedImage!) as ImageProvider
+                          : const AssetImage('assets/images/user.png'),
+                    ),
+                  ),
+
+                  // Edit icon at bottom-right of avatar
+                  Positioned(
+                    right: 10,
+                    bottom: 5,
+                    child: GestureDetector(
+                      onTap: _pickFromGallery,
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF4F2A09),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.edit, color: Colors.white, size: 20),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -109,7 +109,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           title: const Text(
             "Success",
-            style: TextStyle(fontFamily: "Modak", color: Color(0xFF6B3E1D)),
+            style: TextStyle(fontFamily: "Modak", color: Color(0xFF5C2E14)),
           ),
           content: Text(
             isExpense
@@ -119,7 +119,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("OK", style: TextStyle(color: Color(0xFF6B3E1D))),
+              child: const Text("OK", style: TextStyle(color: Color(0xFF5C2E14))),
             ),
           ],
         ),
@@ -132,13 +132,13 @@ class _LogEntryPageState extends State<LogEntryPage> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           title: const Text(
             "Error",
-            style: TextStyle(fontFamily: "Modak", color: Color(0xFF6B3E1D)),
+            style: TextStyle(fontFamily: "Modak", color: Color(0xFF5C2E14)),
           ),
           content: Text(e.toString()),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("OK", style: TextStyle(color: Color(0xFF6B3E1D))),
+              child: const Text("OK", style: TextStyle(color: Color(0xFF5C2E14))),
             ),
           ],
         ),
@@ -201,6 +201,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
                                               style: const TextStyle(
                                                 color: Color(0xFF6B3E1D),
                                                 fontWeight: FontWeight.bold,
+                                                fontFamily: "Questrial",
                                               ),
                                             ),
                                           ))
