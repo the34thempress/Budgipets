@@ -219,7 +219,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFADEC6),
+      backgroundColor: const Color(0xFFF4D6C1),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -516,7 +516,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       ],
                     ),
                     Image.asset(
-                      "assets/images/pet.png",
+                      "assets/images/dog.png",
                       height: 130,
                     ),
                   ],

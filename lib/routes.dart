@@ -10,6 +10,9 @@ import 'pages/logs/allowance.dart';
 import 'pages/logs/log_history.dart';
 import 'pages/auth/forgot_password.dart';
 import 'screens/tutorial_screens/tutorial.dart';
+import 'pages/settings/change_email.dart';
+import 'pages/settings/change_password.dart';
+import 'pages/auth/delete_account.dart';
 
 class Routes {
   static const String login = '/login';
@@ -23,6 +26,9 @@ class Routes {
   static const String logs = '/logs';
   static const String forgot_password = '/forgot_password';
   static const String tutorial = '/tutorial'; 
+  static const String change_email = '/change_email';
+  static const String change_password = '/change_password';
+  static const String delete_account = '/delete_account';
 
   static Map<String, WidgetBuilder> routes = {
     login: (context) => LoginPage(),
@@ -36,5 +42,8 @@ class Routes {
     logs: (context) => LogsPage(),
     forgot_password: (context) => ForgotPasswordPage(),
     tutorial: (context) => TutorialScreen(),
+    change_email: (context) => ChangeEmailPage(),
+    change_password: (context) => ChangePasswordPage(),
+    delete_account: (context) => DeleteAccountPage(),
   };
 }

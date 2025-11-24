@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'create_account.dart'; // import your create_account page
-import 'forgot_password.dart'; // ✅ added import
-import '../dashboard/dashboard.dart';     // import your dashboard page
+import 'create_account.dart';
+import 'forgot_password.dart';
+import '../dashboard/dashboard.dart';
+import '../../screens/tutorial_screens/tutorial.dart'; // ✅ Fixed path
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -15,7 +17,6 @@ class LoginPage extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Questrial',
       ),
-      // ✅ added forgot password route
       routes: {
         'forgot_password': (context) => ForgotPasswordPage(),
       },
@@ -34,6 +35,13 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _passwordVisible = false;
+
+  // ✅ Check if user has completed tutorial
+  Future<bool> _hasCompletedTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('tutorial_completed') ?? false;
+  }
 
   // Login function
   void _login() async {
@@ -41,6 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
+      if (!mounted) return; // ✅ Added mounted check
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter both email and password")),
       );
@@ -60,6 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Check if email is verified
         if (user.emailConfirmedAt == null) {
           await supabase.auth.signOut();
+          if (!mounted) return; // ✅ Added mounted check
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Please verify your email before logging in."),
@@ -68,17 +78,32 @@ class _LoginScreenState extends State<LoginScreen> {
           return;
         }
 
-        // Go to dashboard if successful
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const DashboardPage()),
-        );
+        // ✅ Check if user has completed tutorial
+        final hasCompletedTutorial = await _hasCompletedTutorial();
+
+        if (!mounted) return; // ✅ Added mounted check
+
+        if (hasCompletedTutorial) {
+          // Go to dashboard if tutorial is completed
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const DashboardPage()),
+          );
+        } else {
+          // Go to tutorial if not completed
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const TutorialScreen()),
+          );
+        }
       } else {
+        if (!mounted) return; // ✅ Added mounted check
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Invalid email or password")),
         );
       }
     } catch (error) {
+      if (!mounted) return; // ✅ Added mounted check
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${error.toString()}")),
       );
@@ -135,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Password field
+              // Password field with visibility toggle
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -143,16 +168,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 child: TextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: !_passwordVisible,
+                  decoration: InputDecoration(
                     hintText: "Password",
-                    hintStyle: TextStyle(color: Colors.grey),
-                    prefixIcon: Icon(
+                    hintStyle: const TextStyle(color: Colors.grey),
+                    prefixIcon: const Icon(
                       Icons.lock,
                       color: Color(0xFF4A2C1A),
                     ),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 16),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                        color: const Color(0xFF4A2C1A),
+                      ),
+                      onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
+                    ),
                   ),
                 ),
               ),
@@ -224,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 20),
 
-              // ✅ Forgot Password link (now functional)
+              // Forgot Password link
               GestureDetector(
                 onTap: () {
                   Navigator.pushNamed(context, 'forgot_password');

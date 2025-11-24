@@ -64,6 +64,8 @@ flutter:
   assets:
     - assets/images/logo.png
     - assets/images/mini_logo.png
+    - assets/images/puppy.png
+    - assets/images/kitten.png
     - assets/images/dog.png
     - assets/images/cat.png
     - assets/images/shades.png

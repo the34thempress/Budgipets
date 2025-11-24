@@ -15,6 +15,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   final _passwordController = TextEditingController();
 
   bool _isLoading = false;
+  bool _passwordVisible = false;
 
   Future<void> _signUp() async {
     final email = _emailController.text.trim();
@@ -119,12 +120,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 ),
                 const SizedBox(height: 20),
 
-                _buildTextField(
-                  controller: _passwordController,
-                  hintText: "Password",
-                  icon: Icons.lock,
-                  obscureText: true,
-                ),
+                _buildPasswordField(),
                 const SizedBox(height: 30),
 
                 SizedBox(
@@ -153,6 +149,41 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(40),
+      ),
+      child: TextField(
+        controller: _passwordController,
+        obscureText: !_passwordVisible,
+        style: const TextStyle(fontFamily: "Questrial"),
+        decoration: InputDecoration(
+          hintText: "Password",
+          hintStyle: const TextStyle(
+            fontFamily: "Questrial",
+            color: Colors.grey,
+          ),
+          prefixIcon: const Icon(Icons.lock, color: Color(0xFF4A2C1A)),
+          suffixIcon: IconButton(
+            icon: Icon(
+              _passwordVisible ? Icons.visibility : Icons.visibility_off,
+              color: const Color(0xFF4A2C1A),
+            ),
+            onPressed: () {
+              setState(() {
+                _passwordVisible = !_passwordVisible;
+              });
+            },
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 16),
         ),
       ),
     );
