@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:budgipets/widgets/main_page_nav_header.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class StorePage extends StatefulWidget {
   const StorePage({super.key});
@@ -12,7 +13,46 @@ class _StorePageState extends State<StorePage> {
   static const Color darkBrown = Color(0xFF582901);
   static const Color pageColor = Color(0xFFFDE6D0);
 
-  int coins = 175;
+  final supabase = Supabase.instance.client;
+
+  int coins = 0;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCoins();
+  }
+
+  Future<void> _loadCoins() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    final response = await supabase
+        .from('profiles')
+        .select('coins')
+        .eq('id', user.id)
+        .single();
+
+    setState(() {
+      coins = response['coins'] ?? 0;
+      _loading = false;
+    });
+  }
+
+  Future<void> _updateCoins(int newCoins) async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    setState(() {
+      coins = newCoins;
+    });
+
+    await supabase
+        .from('profiles')
+        .update({'coins': newCoins})
+        .eq('id', user.id);
+  }
 
   final List<Map<String, dynamic>> storeItems = [
     {
@@ -93,11 +133,14 @@ class _StorePageState extends State<StorePage> {
             ),
             if (canAfford)
               ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    coins -= (item['price'] as int);
-                  });
+                onPressed: () async {
+                  final price = item['price'] as int;
+                  final newCoins = coins - price;
+
+                  await _updateCoins(newCoins);
+
                   Navigator.pop(context);
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -142,7 +185,6 @@ class _StorePageState extends State<StorePage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 🖼 Item Image (framed only)
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -159,7 +201,6 @@ class _StorePageState extends State<StorePage> {
             ),
             const SizedBox(width: 16),
 
-            // 📝 Text
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,7 +228,6 @@ class _StorePageState extends State<StorePage> {
               ),
             ),
 
-            // 💰 Price
             Container(
               padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
               decoration: BoxDecoration(
@@ -221,54 +261,108 @@ class _StorePageState extends State<StorePage> {
   }
 
   @override
+@override
 Widget build(BuildContext context) {
   return Scaffold(
     backgroundColor: const Color(0xFFFFF3E0),
     body: Column(
       children: [
         CommonHeader(
-  child: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      const Text(
-        'STORE',
-        style: TextStyle(
-          fontFamily: 'Modak',
-          fontSize: 40,
-          color: Color(0xFFFDE6D0),
-        ),
-      ),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.brown,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Image.asset(
-              'assets/images/coin.png',
-              width: 26,
-              height: 26,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '$coins',
-              style: const TextStyle(
-                fontFamily: 'Questrial',
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'STORE',
+                style: TextStyle(
+                  fontFamily: 'Modak',
+                  fontSize: 40,
+                  color: Color(0xFFFDE6D0),
+                ),
               ),
-            ),
-          ],
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.brown,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/coin.png',
+                      width: 26,
+                      height: 26,
+                    ),
+                    const SizedBox(width: 4),
+                    _loading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            '$coins',
+                            style: const TextStyle(
+                              fontFamily: 'Questrial',
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    ],
-  ),
-),
 
-        // 🛍 Store Items
+        // +1 / -1 buttons
+        Padding(
+          padding: const EdgeInsets.only(top: 10, bottom: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  final newCoins = coins + 1;
+                  await _updateCoins(newCoins);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  '+1 Coin',
+                  style: TextStyle(fontFamily: 'Questrial'),
+                ),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton(
+                onPressed: () async {
+                  if (coins > 0) {
+                    final newCoins = coins - 1;
+                    await _updateCoins(newCoins);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  '-1 Coin',
+                  style: TextStyle(fontFamily: 'Questrial'),
+                ),
+              ),
+            ],
+          ),
+        ),
+
         Expanded(
           child: ListView.builder(
             itemCount: storeItems.length,
@@ -281,4 +375,5 @@ Widget build(BuildContext context) {
     ),
   );
 }
+
 }
