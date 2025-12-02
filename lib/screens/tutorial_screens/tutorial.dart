@@ -374,14 +374,14 @@ class _TutorialScreenState extends State<TutorialScreen> {
             'Step 3:', // ✅ Edit this
             'Log Your Transactions', // ✅ Edit this
             'Make sure you log all your expenses or incomes every day! You will get currency and evolution tokens for your pet!', // ✅ Edit this
-            'assets/images/dog_egg.png', // ✅ Edit this image path
+            'assets/images/coin.png', // ✅ Edit this image path
           ),
           const SizedBox(height: 60),
           _buildChecklistItem(
             'Step 4:', // ✅ Edit this
             'Go Shopping!', // ✅ Edit this
             'As you continue to log your transactions, you will have enough currency to buy accessories. Personalize your Budgipet while being financially responsible!', // ✅ Edit this
-            'assets/images/dog.png', // ✅ Edit this image path
+            'assets/images/bow.png', // ✅ Edit this image path
           ),
         ],
       ),

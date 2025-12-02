@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:budgipets/widgets/main_page_nav_header.dart';
 import 'package:budgipets/pages/dashboard/dashboard.dart';
 import '../auth/delete_account.dart';
+import 'package:budgipets/routes.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -291,7 +292,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       Center(
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/delete_account');
+                            Navigator.pushNamed(context, Routes.delete_account);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF4F2A09),

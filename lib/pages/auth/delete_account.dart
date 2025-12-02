@@ -161,7 +161,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/images/dog.png',
+                'assets/images/sad_dog.png',
                 height: 200,
               ),
               SizedBox(height: 25),

@@ -77,7 +77,6 @@ class _LogEntryPageState extends State<LogEntryPage> {
 
       await supabase.from('spend_logs').insert(data);
 
-
       final ms = _monthStart(DateTime.now());
       final monthStr = _msStr(ms);
       final budgetRow = await supabase
@@ -105,7 +104,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
 
       showDialog(
         context: context,
-        builder: (_) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           title: const Text(
             "Success",
@@ -118,7 +117,10 @@ class _LogEntryPageState extends State<LogEntryPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                // Use dialogContext instead of context to close the dialog
+                Navigator.pop(dialogContext);
+              },
               child: const Text("OK", style: TextStyle(color: Color(0xFF5C2E14))),
             ),
           ],
@@ -128,7 +130,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
       if (!mounted) return;
       showDialog(
         context: context,
-        builder: (_) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           title: const Text(
             "Error",
@@ -137,7 +139,10 @@ class _LogEntryPageState extends State<LogEntryPage> {
           content: Text(e.toString()),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                // Use dialogContext instead of context to close the dialog
+                Navigator.pop(dialogContext);
+              },
               child: const Text("OK", style: TextStyle(color: Color(0xFF5C2E14))),
             ),
           ],

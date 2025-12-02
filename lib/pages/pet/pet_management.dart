@@ -290,7 +290,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 26),
                 child: Text(
-                  'Age: 34 days\nEXP: 3490\nEXP to next level: 0\nStatus: Healthy',
+                  'Age: 34 days\nEXP Tokens to next level: 0\nStatus: Healthy',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Questrial',
