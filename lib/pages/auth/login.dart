@@ -56,6 +56,62 @@ class _LoginScreenState extends State<LoginScreen> {
       return false;
     }
   }
+  
+Future<void> showLoginPopup({
+  required BuildContext context,
+  required String title,
+  required String message,
+}) {
+  return showDialog<void>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: const Color(0xFFF5E6D3),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontFamily: 'Questrial',
+            color: Color(0xFF6B4423),
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        content: Text(
+          message,
+          style: const TextStyle(
+            fontFamily: 'Questrial',
+            color: Color(0xFF6B4423),
+            fontSize: 16,
+            height: 1.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: const Text(
+              'OK',
+              style: TextStyle(
+                fontFamily: 'Questrial',
+                color: Color(0xFF8B6443),
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   // Login function
   void _login() async {
@@ -64,9 +120,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (email.isEmpty || password.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter both email and password")),
-      );
+          await showLoginPopup(
+              context: context,
+              title: 'Login Error',
+              message: 'Please enter both email and password',
+            );
+
       return;
     }
 
@@ -84,11 +143,12 @@ class _LoginScreenState extends State<LoginScreen> {
         if (user.emailConfirmedAt == null) {
           await supabase.auth.signOut();
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Please verify your email before logging in."),
-            ),
-          );
+          await showLoginPopup(
+              context: context,
+              title: 'Login Error',
+              message: 'Please verify your email before logging in.',
+            );
+
           return;
         }
 
@@ -112,15 +172,21 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } else {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Invalid email or password")),
-        );
+          await showLoginPopup(
+              context: context,
+              title: 'Login Error',
+              message: 'Invalid email or password',
+            );
+
       }
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${error.toString()}")),
-      );
+          await showLoginPopup(
+              context: context,
+              title: 'Login Error',
+              message: 'Error: ${error.toString()}',
+            );
+
     }
   }
 
