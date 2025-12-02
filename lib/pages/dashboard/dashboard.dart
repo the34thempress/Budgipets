@@ -36,10 +36,18 @@ class _DashboardPageState extends State<DashboardPage> {
     DateTime(2025, 10, 12),
   ];
 
+  // Supabase client
+  final _supabase = Supabase.instance.client;
+
+  // Coins state
+  int _coins = 0;
+  bool _loadingCoins = true;
+
   @override
   void initState() {
     super.initState();
     _loadOrCreateBudget();
+    _loadCoins();
   }
 
   @override
@@ -51,9 +59,8 @@ class _DashboardPageState extends State<DashboardPage> {
   DateTime _monthStart(DateTime dt) => DateTime(dt.year, dt.month, 1);
 
   Future<void> _loadOrCreateBudget() async {
-    final supabase = Supabase.instance.client;
     try {
-      final user = supabase.auth.currentUser;
+      final user = _supabase.auth.currentUser;
       if (user == null) {
         if (!mounted) return;
         setState(() {
@@ -66,7 +73,7 @@ class _DashboardPageState extends State<DashboardPage> {
       final ms = _monthStart(DateTime.now());
       final msStr =
           '${ms.year.toString().padLeft(4, '0')}-${ms.month.toString().padLeft(2, '0')}-01';
-      final existing = await supabase
+      final existing = await _supabase
           .from('budgets')
           .select()
           .eq('user_id', user.id)
@@ -80,7 +87,7 @@ class _DashboardPageState extends State<DashboardPage> {
           _loading = false;
         });
       } else {
-        final inserted = await supabase
+        final inserted = await _supabase
             .from('budgets')
             .insert({
               'user_id': user.id,
@@ -110,171 +117,169 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-Future<double?> _promptNumber({
-  required String title,
-  required double initial,
-}) async {
-  final controller = TextEditingController(text: initial.toString());
+  Future<double?> _promptNumber({
+    required String title,
+    required double initial,
+  }) async {
+    final controller = TextEditingController(text: initial.toString());
 
-  return showDialog<double>(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) {
-      return Dialog(
-        backgroundColor: Color(0xFFFDE6D0),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: const Color(0xFF6A3E1C), // deep brown theme
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Color(0xFF3E1D01), // darker brown border
-              width: 1.4,
+    return showDialog<double>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: const Color(0xFFFDE6D0),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF6A3E1C), // deep brown theme
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFF3E1D01), // darker brown border
+                width: 1.4,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.4),
-                blurRadius: 12,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // TITLE
-              Text(
-                title,
-                style: const TextStyle(
-                  fontFamily: "Questrial",
-                  fontSize: 24,
-                  color: Color(0xFFFFD79B),
-                  fontWeight: FontWeight.w800,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // TITLE
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontFamily: "Questrial",
+                    fontSize: 24,
+                    color: Color(0xFFFFD79B),
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // INPUT FIELD
-              TextField(
-                controller: controller,
-                autofocus: true,
-                keyboardType: TextInputType.number,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: "Questrial",
-                ),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  hintText: "Enter amount",
-                  hintStyle: TextStyle(
-                    color: Color(0xFF3E1D01),
+                // INPUT FIELD
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
                     fontFamily: "Questrial",
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: Color(0xFF3E1D01),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    hintText: "Enter amount",
+                    hintStyle: TextStyle(
+                      color: const Color(0xFF3E1D01),
+                      fontFamily: "Questrial",
                     ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF3E1D01),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF3E1D01),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF3E1D01),
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 22),
+                const SizedBox(height: 22),
 
-              // BUTTON ROW
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // CANCEL BUTTON
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 26,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.10),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Color(0xFF3E1D01),
+                // BUTTON ROW
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // CANCEL BUTTON
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 26,
+                          vertical: 12,
                         ),
-                      ),
-                      child: const Text(
-                        "Cancel",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: "Questrial",
-                          fontSize: 16,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.10),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF3E1D01),
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-
-                  // CONFIRM BUTTON
-                  GestureDetector(
-                    onTap: () {
-                      final value = double.tryParse(controller.text);
-                      Navigator.pop(context, value);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 26,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFD79B),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        "Confirm",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontFamily: "Questrial",
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                        child: const Text(
+                          "Cancel",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: "Questrial",
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+
+                    // CONFIRM BUTTON
+                    GestureDetector(
+                      onTap: () {
+                        final value = double.tryParse(controller.text);
+                        Navigator.pop(context, value);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 26,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFD79B),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          "Confirm",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: "Questrial",
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
-
+        );
+      },
+    );
+  }
 
   Future<void> _updateBudgetField(String field, num value) async {
-    final supabase = Supabase.instance.client;
-    final user = supabase.auth.currentUser;
+    final user = _supabase.auth.currentUser;
     if (user == null) return;
     final ms = _monthStart(DateTime.now());
     final msStr =
         '${ms.year.toString().padLeft(4, '0')}-${ms.month.toString().padLeft(2, '0')}-01';
     try {
-      await supabase.from('budgets').upsert({
+      await _supabase.from('budgets').upsert({
         'user_id': user.id,
         'month_start': msStr,
       }, onConflict: 'user_id,month_start');
-      await supabase
+      await _supabase
           .from('budgets')
           .update({field: value})
           .eq('user_id', user.id)
@@ -292,61 +297,141 @@ Future<double?> _promptNumber({
     }
   }
 
- Widget _buildTopBarEmptyWithAvatar() {
-  return Container(
-    color: const Color(0xFF6A3E1C),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // 👤 AVATAR ON THE LEFT
-        GestureDetector(
-          onTap: () {
-            if (!mounted) return;
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ProfilePage()),
-            );
-          },
-          child: const CircleAvatar(
-            radius: 30,
-            backgroundImage: AssetImage("assets/images/user.png"),
-          ),
-        ),
+  // ---------------------- COINS LOADING ----------------------
+  Future<void> _loadCoins() async {
+    setState(() {
+      _loadingCoins = true;
+    });
 
-        // 🪙 COINS WITH CONTAINER ON THE RIGHT
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Color(0xFF3E1D01), width: 1),
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      if (!mounted) return;
+      setState(() {
+        _coins = 0;
+        _loadingCoins = false;
+      });
+      return;
+    }
+
+    try {
+      // Use maybeSingle to avoid single() error when row is missing
+      final resp = await _supabase
+          .from('profiles')
+          .select('coins')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      // resp can be null, a Map, or other forms; handle safely
+      int parsed = 0;
+      if (resp == null) {
+        parsed = 0;
+      } else if (resp is Map && resp.containsKey('coins')) {
+        final val = resp['coins'];
+        if (val is int) parsed = val;
+        else parsed = int.tryParse(val?.toString() ?? '0') ?? 0;
+      } else {
+        // fallback: try to parse numeric string
+        parsed = int.tryParse(resp.toString()) ?? 0;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _coins = parsed;
+        _loadingCoins = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _coins = 0;
+        _loadingCoins = false;
+      });
+      debugPrint('loadCoins error: $e');
+    }
+  }
+
+  Future<void> _updateCoins(int newCoins) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+    // Update local immediately for snappy UI
+    setState(() {
+      _coins = newCoins;
+    });
+
+    try {
+      await _supabase.from('profiles').update({'coins': newCoins}).eq('id', user.id);
+    } catch (e) {
+      debugPrint('updateCoins error: $e');
+      // Try to reload from backend if update fails
+      await _loadCoins();
+    }
+  }
+
+  Widget _buildTopBarEmptyWithAvatar() {
+    return Container(
+      color: const Color(0xFF6A3E1C),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // 👤 AVATAR ON THE LEFT
+          GestureDetector(
+            onTap: () async {
+              if (!mounted) return;
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfilePage()),
+              );
+              // refresh coins in case profile changed
+              if (!mounted) return;
+              await _loadCoins();
+            },
+            child: const CircleAvatar(
+              radius: 30,
+              backgroundImage: AssetImage("assets/images/user.png"),
+            ),
           ),
-          child: Row(
-            children: [
-              Image.asset(
-                'assets/images/coin.png',
-                width: 26,
-                height: 26,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '175',
-                style: const TextStyle(
-                  fontFamily: 'Questrial',
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+
+          // 🪙 COINS WITH CONTAINER ON THE RIGHT
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF3E1D01), width: 1),
+            ),
+            child: Row(
+              children: [
+                Image.asset(
+                  'assets/images/coin.png',
+                  width: 26,
+                  height: 26,
                 ),
-              ),
-            ],
+                const SizedBox(width: 4),
+                _loadingCoins
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(
+                        '$_coins',
+                        style: const TextStyle(
+                          fontFamily: 'Questrial',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+              ],
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 
   Widget _buildSummaryTitle() {
     return Padding(
@@ -402,7 +487,7 @@ Future<double?> _promptNumber({
                 padding:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                 decoration: BoxDecoration(
-                  color: Color(0xFF582901),
+                  color: const Color(0xFF582901),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -468,7 +553,7 @@ Future<double?> _promptNumber({
                 padding:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                 decoration: BoxDecoration(
-                  color: Color(0xFF582901),
+                  color: const Color(0xFF582901),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -736,10 +821,12 @@ Future<double?> _promptNumber({
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   InkWell(
-                    onTap: () {
+                    onTap: () async {
                       if (!mounted || _dialogOpen) return;
-                      Navigator.push(context,
+                      await Navigator.push(context,
                           MaterialPageRoute(builder: (_) => const SettingsPage()));
+                      if (!mounted) return;
+                      await _loadCoins();
                     },
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -755,10 +842,12 @@ Future<double?> _promptNumber({
                     ),
                   ),
                   InkWell(
-                    onTap: () {
+                    onTap: () async {
                       if (!mounted || _dialogOpen) return;
-                      Navigator.push(context,
+                      await Navigator.push(context,
                           MaterialPageRoute(builder: (_) => const PetManagementPage()));
+                      if (!mounted) return;
+                      await _loadCoins();
                     },
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -775,10 +864,12 @@ Future<double?> _promptNumber({
                   ),
                   const SizedBox(width: 96),
                   InkWell(
-                    onTap: () {
+                    onTap: () async {
                       if (!mounted || _dialogOpen) return;
-                      Navigator.push(context,
+                      await Navigator.push(context,
                           MaterialPageRoute(builder: (_) => const LogsPage()));
+                      if (!mounted) return;
+                      await _loadCoins();
                     },
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -794,10 +885,12 @@ Future<double?> _promptNumber({
                     ),
                   ),
                   InkWell(
-                    onTap: () {
+                    onTap: () async {
                       if (!mounted || _dialogOpen) return;
-                      Navigator.push(context,
+                      await Navigator.push(context,
                           MaterialPageRoute(builder: (_) => const StorePage()));
+                      if (!mounted) return;
+                      await _loadCoins();
                     },
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -829,6 +922,7 @@ Future<double?> _promptNumber({
                     );
                     if (!mounted) return;
                     await _loadOrCreateBudget();
+                    await _loadCoins();
                   },
                   child: Container(
                     width: 64,
