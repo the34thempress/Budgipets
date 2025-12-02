@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'create_account.dart';
 import 'forgot_password.dart';
 import '../dashboard/dashboard.dart';
-import '../../screens/tutorial_screens/tutorial.dart'; // ✅ Fixed path
+import '../../screens/tutorial_screens/tutorial.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -37,10 +36,25 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _passwordVisible = false;
 
-  // ✅ Check if user has completed tutorial
-  Future<bool> _hasCompletedTutorial() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('tutorial_completed') ?? false;
+  // ✅ Check if user has completed tutorial from Supabase database
+  Future<bool> _hasCompletedTutorial(String userId) async {
+    try {
+      final supabase = Supabase.instance.client;
+      
+      // Query the users table for tutorial_completed status
+      final response = await supabase
+          .from('users')
+          .select('tutorial_completed')
+          .eq('id', userId)
+          .single();
+      
+      // Return tutorial_completed value, default to false if null
+      return response['tutorial_completed'] ?? false;
+    } catch (e) {
+      // If there's an error or user not found, assume tutorial not completed
+      debugPrint('Error checking tutorial status: $e');
+      return false;
+    }
   }
 
   // Login function
@@ -49,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      if (!mounted) return; // ✅ Added mounted check
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter both email and password")),
       );
@@ -69,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Check if email is verified
         if (user.emailConfirmedAt == null) {
           await supabase.auth.signOut();
-          if (!mounted) return; // ✅ Added mounted check
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Please verify your email before logging in."),
@@ -78,10 +92,10 @@ class _LoginScreenState extends State<LoginScreen> {
           return;
         }
 
-        // ✅ Check if user has completed tutorial
-        final hasCompletedTutorial = await _hasCompletedTutorial();
+        // ✅ Check if user has completed tutorial from database
+        final hasCompletedTutorial = await _hasCompletedTutorial(user.id);
 
-        if (!mounted) return; // ✅ Added mounted check
+        if (!mounted) return;
 
         if (hasCompletedTutorial) {
           // Go to dashboard if tutorial is completed
@@ -97,13 +111,13 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }
       } else {
-        if (!mounted) return; // ✅ Added mounted check
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Invalid email or password")),
         );
       }
     } catch (error) {
-      if (!mounted) return; // ✅ Added mounted check
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${error.toString()}")),
       );
@@ -113,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4D6C1), // peach background
+      backgroundColor: const Color(0xFFF4D6C1),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 60),
