@@ -10,7 +10,7 @@ class StorePage extends StatefulWidget {
 
 class _StorePageState extends State<StorePage> {
   static const Color darkBrown = Color(0xFF582901);
-  static const Color pageColor = Color(0xFFFADEC6);
+  static const Color pageColor = Color(0xFFFDE6D0);
 
   int coins = 175;
 

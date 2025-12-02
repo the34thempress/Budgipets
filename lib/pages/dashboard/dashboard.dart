@@ -110,58 +110,157 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  Future<num?> _promptNumber({
-    required String title,
-    required num initial,
-  }) async {
-    if (_dialogOpen) return null;
-    if (!mounted) return null;
-    _dialogOpen = true;
-    final stable = context;
-    final controller = TextEditingController(text: initial.toStringAsFixed(2));
-    num? result;
-    try {
-      result = await showDialog<num>(
-        context: stable,
-        useRootNavigator: true,
-        barrierDismissible: true,
-        builder: (ctx) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            title: Text(title, style: const TextStyle(fontFamily: "Modak")),
-            content: TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(hintText: "e.g. 2000.00"),
+Future<double?> _promptNumber({
+  required String title,
+  required double initial,
+}) async {
+  final controller = TextEditingController(text: initial.toString());
+
+  return showDialog<double>(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return Dialog(
+        backgroundColor: Color(0xFFFDE6D0),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFF6A3E1C), // deep brown theme
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Color(0xFF3E1D01), // darker brown border
+              width: 1.4,
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(stable, rootNavigator: true).pop();
-                },
-                child: const Text("Cancel"),
-              ),
-              TextButton(
-                onPressed: () {
-                  final raw = controller.text.trim().replaceAll(',', '');
-                  final v = double.tryParse(raw);
-                  if (v == null || v < 0) return;
-                  Navigator.of(stable, rootNavigator: true).pop(v);
-                },
-                child: const Text("Save"),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 5),
               ),
             ],
-          );
-        },
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // TITLE
+              Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: "Questrial",
+                  fontSize: 24,
+                  color: Color(0xFFFFD79B),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // INPUT FIELD
+              TextField(
+                controller: controller,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: "Questrial",
+                ),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  hintText: "Enter amount",
+                  hintStyle: TextStyle(
+                    color: Color(0xFF3E1D01),
+                    fontFamily: "Questrial",
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: Color(0xFF3E1D01),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF3E1D01),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 22),
+
+              // BUTTON ROW
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // CANCEL BUTTON
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 26,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.10),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Color(0xFF3E1D01),
+                        ),
+                      ),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: "Questrial",
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // CONFIRM BUTTON
+                  GestureDetector(
+                    onTap: () {
+                      final value = double.tryParse(controller.text);
+                      Navigator.pop(context, value);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 26,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFD79B),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        "Confirm",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontFamily: "Questrial",
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       );
-    } catch (e) {
-      result = null;
-    } finally {
-      _dialogOpen = false;
-    }
-    return result;
-  }
+    },
+  );
+}
+
 
   Future<void> _updateBudgetField(String field, num value) async {
     final supabase = Supabase.instance.client;
@@ -193,30 +292,61 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  Widget _buildTopBarEmptyWithAvatar() {
-    return Container(
-      color: const Color(0xFF5C2E14),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        children: [
-          const Expanded(child: SizedBox.shrink()),
-          GestureDetector(
-            onTap: () {
-              if (!mounted) return;
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProfilePage()),
-              );
-            },
-            child: const CircleAvatar(
-              radius: 22,
-              backgroundImage: AssetImage("assets/images/user.png"),
-            ),
+ Widget _buildTopBarEmptyWithAvatar() {
+  return Container(
+    color: const Color(0xFF6A3E1C),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // 👤 AVATAR ON THE LEFT
+        GestureDetector(
+          onTap: () {
+            if (!mounted) return;
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfilePage()),
+            );
+          },
+          child: const CircleAvatar(
+            radius: 30,
+            backgroundImage: AssetImage("assets/images/user.png"),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+
+        // 🪙 COINS WITH CONTAINER ON THE RIGHT
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Color(0xFF3E1D01), width: 1),
+          ),
+          child: Row(
+            children: [
+              Image.asset(
+                'assets/images/coin.png',
+                width: 26,
+                height: 26,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '175',
+                style: const TextStyle(
+                  fontFamily: 'Questrial',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildSummaryTitle() {
     return Padding(
@@ -272,7 +402,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 padding:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                 decoration: BoxDecoration(
-                  color: Colors.black,
+                  color: Color(0xFF582901),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -310,7 +440,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         width: 3,
                         height: 3,
                         decoration: const BoxDecoration(
-                          color: Color(0xFF2C1400),
+                          color: Color(0xFF582901),
                           shape: BoxShape.circle,
                         ),
                       )),
@@ -323,7 +453,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 _editingAmount = true;
                 final v = await _promptNumber(
                   title: "Set Goal",
-                  initial: _goal ?? 0,
+                  initial: 0.0,
                 );
                 if (v != null) {
                   if (!mounted) {
@@ -338,7 +468,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 padding:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                 decoration: BoxDecoration(
-                  color: Colors.black,
+                  color: Color(0xFF582901),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -371,48 +501,44 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildDaysAndPet() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
-                "34",
-                style: TextStyle(
-                  fontFamily: "PixelifySans",
-                  fontSize: 80,
-                  height: 1,
-                  color: Color(0xFF4A2100),
-                ),
-              ),
-              SizedBox(height: 6),
-              Text(
-                "DAYS",
-                style: TextStyle(
-                  fontFamily: "PixelifySans",
-                  fontSize: 20,
-                  color: Color(0xFF4A2100),
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Image.asset(
-            "assets/images/dog.png",
-            height: 110,
-            width: 110,
-            fit: BoxFit.contain,
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+      child:  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Column(
+                        children: const [
+                          Text(
+                            "34",
+                            style: TextStyle(
+                              fontFamily: "PixelifySans",
+                              fontSize: 90,
+                              height: 0.9,
+                              color: Color(0xFF5C2E14),
+                            ),
+                          ),
+                          Text(
+                            "DAYS",
+                            style: TextStyle(
+                              fontFamily: "PixelifySans",
+                              fontSize: 40,
+                              color: Color(0xFF5C2E14),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 15),
+                      Image.asset(
+                        "assets/images/dog.png",
+                        height: 140,
+                      ),
+                    ],
+                  ),
     );
   }
 
   Widget _buildCalendarCard() {
     const outsideColor = Color(0xFFD9B896);
-    const dayTextColor = Color(0xFFFFD79B);
+    const dayTextColor = Color.fromARGB(255, 237, 221, 195);
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 16),
       child: Container(
@@ -439,8 +565,8 @@ class _DashboardPageState extends State<DashboardPage> {
                 formatButtonVisible: false,
                 titleTextStyle: const TextStyle(
                     fontFamily: "Questrial",
-                    fontSize: 18,
-                    color: Color(0xFFFADEC6),
+                    fontSize: 21,
+                    color: Color.fromARGB(255, 251, 237, 225),
                     fontWeight: FontWeight.w700),
                 leftChevronIcon:
                     const Icon(Icons.chevron_left, color: Color(0xFFFADEC6)),
@@ -449,7 +575,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               daysOfWeekStyle: const DaysOfWeekStyle(
                 weekdayStyle: TextStyle(
-                    color: Color(0xFFFFD79B),
+                    color: Color.fromARGB(255, 238, 208, 163),
                     fontFamily: "Questrial",
                     fontWeight: FontWeight.w700,
                     fontSize: 12),
@@ -462,9 +588,9 @@ class _DashboardPageState extends State<DashboardPage> {
               startingDayOfWeek: StartingDayOfWeek.sunday,
               calendarStyle: const CalendarStyle(
                 defaultTextStyle: TextStyle(
-                    color: dayTextColor, fontFamily: "Questrial", fontSize: 13),
+                    color: Color.fromARGB(255, 247, 233, 210), fontFamily: "Questrial", fontSize: 13),
                 weekendTextStyle: TextStyle(
-                    color: dayTextColor, fontFamily: "Questrial", fontSize: 13),
+                    color: Color.fromARGB(255, 220, 201, 171), fontFamily: "Questrial", fontSize: 13),
                 outsideTextStyle:
                     TextStyle(color: outsideColor, fontFamily: "Questrial"),
                 isTodayHighlighted: false,
@@ -574,7 +700,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    const bottomBarColor = Color(0xFF5C2E14);
+    const bottomBarColor = Color(0xFF6A3E1C);
     const accentText = Color(0xFFFADEC6);
     return Scaffold(
       backgroundColor: const Color(0xFFF4D6C1),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // ✅ Added Supabase
 import '../../pages/dashboard/dashboard.dart'; // ✅ Fixed dashboard import
 
 class TutorialScreen extends StatefulWidget {
@@ -29,49 +30,110 @@ class _TutorialScreenState extends State<TutorialScreen> {
     super.dispose();
   }
 
-  void handleNext() {
-    // ✅ Validation for pet selection (slide 3 - after new checklist)
-    if (currentSlide == 3 && selectedPet.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a pet before continuing'),
-          backgroundColor: Color(0xFF6B4423),
-          duration: Duration(seconds: 2),
+Future<void> showStyledPopup(String message) async {
+  return showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: const Color(0xFFFDE6D0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+      ),
+      title: const Text(
+        'Notice',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontFamily: 'Questrial',
+          color: Color(0xFF6B4423),
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
         ),
-      );
+      ),
+      content: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontFamily: 'Questrial',
+          color: Color(0xFF6B4423),
+          fontSize: 16,
+          height: 1.5,
+        ),
+      ),
+      actions: [
+        Center(
+          child: ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6B4423),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+            child: const Text(
+              'OK',
+              style: TextStyle(
+                fontFamily: 'Questrial',
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+      ],
+      actionsAlignment: MainAxisAlignment.center,
+    ),
+  );
+}
+
+
+
+void handleNext() {
+  if (currentSlide == 3 && selectedPet.isEmpty) {
+    showStyledPopup('Please select a pet before continuing');
+    return;
+  }
+  if (currentSlide == 4 && petName.trim().isEmpty) {
+    showStyledPopup('Please enter a name for your pet');
+    return;
+  }
+  if (currentSlide == 5) {
+    if (displayName.trim().isEmpty) {
+      showStyledPopup('Please enter your display name');
       return;
     }
-    
-    // ✅ Validation for pet name (slide 4)
-    if (currentSlide == 4 && petName.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a name for your pet'),
-          backgroundColor: Color(0xFF6B4423),
-          duration: Duration(seconds: 2),
-        ),
-      );
+    if (monthlyAllowance.trim().isEmpty) {
+      showStyledPopup('Please enter your monthly allowance');
       return;
-    }
-    
-    if (currentSlide < 5) { // ✅ Changed from 4 to 5
-      setState(() {
-        currentSlide++;
-      });
     }
   }
 
-  void handleFinish() {
+  if (currentSlide < 5) {
+    setState(() {
+      currentSlide++;
+    });
+  }
+}
+
+
+
+  Future<void> handleFinish() async {
+            if (displayName.trim().isEmpty) {
+          showStyledPopup('Please enter your display name before continuing.');
+          return;
+        }
+
+        if (monthlyAllowance.trim().isEmpty) {
+          showStyledPopup('Please enter your monthly allowance before continuing.');
+          return;
+        }
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFFF5E6D3),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(
-            color: Color(0xFF6B4423),
-            width: 3,
-          ),
+          side: const BorderSide(color: Color(0xFF6B4423), width: 3),
         ),
         title: const Text(
           'Confirm Your Choices',
@@ -110,27 +172,30 @@ class _TutorialScreenState extends State<TutorialScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              // ✅ Save tutorial completion and user data
+              // ✅ Save tutorial completion and user data to SharedPreferences
               final prefs = await SharedPreferences.getInstance();
               await prefs.setBool('tutorial_completed', true);
-              
-              // Save user choices
-              if (selectedPet.isNotEmpty) {
-                await prefs.setString('selected_pet', selectedPet);
-              }
-              if (petName.isNotEmpty) {
-                await prefs.setString('pet_name', petName);
-              }
-              if (displayName.isNotEmpty) {
-                await prefs.setString('display_name', displayName);
-              }
+              if (selectedPet.isNotEmpty) await prefs.setString('selected_pet', selectedPet);
+              if (petName.isNotEmpty) await prefs.setString('pet_name', petName);
+              if (displayName.isNotEmpty) await prefs.setString('display_name', displayName);
               await prefs.setString('user_type', userType);
-              if (monthlyAllowance.isNotEmpty) {
-                await prefs.setString('monthly_allowance', monthlyAllowance);
+              if (monthlyAllowance.isNotEmpty) await prefs.setString('monthly_allowance', monthlyAllowance);
+
+              // ✅ Update Supabase users table
+              try {
+                final user = Supabase.instance.client.auth.currentUser;
+                if (user != null) {
+                  await Supabase.instance.client
+                      .from('users')
+                      .update({'tutorial_completed': true})
+                      .eq('id', user.id);
+                }
+              } catch (e) {
+                debugPrint('Error updating Supabase tutorial_completed: $e');
               }
-              
+
               if (!mounted) return;
-              
+
               // ✅ Navigate to dashboard
               Navigator.pushReplacement(
                 context,
@@ -170,31 +235,24 @@ class _TutorialScreenState extends State<TutorialScreen> {
             children: [
               Expanded(
                 child: Center(
-                  child: SingleChildScrollView(
-                    child: _buildSlideContent(),
-                  ),
+                  child: SingleChildScrollView(child: _buildSlideContent()),
                 ),
               ),
               const SizedBox(height: 40),
               Column(
                 children: [
                   ElevatedButton(
-                    onPressed: currentSlide == 5 ? handleFinish : handleNext, // ✅ Changed from 4 to 5
+                    onPressed: currentSlide == 5 ? handleFinish : handleNext,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6B4423),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 100,
-                        vertical: 18,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50),
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 18),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
                       elevation: 8,
-                      shadowColor: Colors.black.withAlpha(77), // 30% opacity
+                      shadowColor: Colors.black.withAlpha(77),
                     ),
                     child: Text(
-                      currentSlide == 5 ? 'Finish' : 'Next', // ✅ Changed from 4 to 5
+                      currentSlide == 5 ? 'Finish' : 'Next',
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w400,
@@ -205,9 +263,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
                   const SizedBox(height: 28),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(6, (index) { // ✅ Changed from 5 to 6
+                    children: List.generate(6, (index) {
                       return GestureDetector(
-                        onTap: () => setState(() => currentSlide = index),
+                        onTap: () {}, // disabled skipping
                         child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 6),
                           width: 14,
@@ -217,10 +275,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                             color: index == currentSlide
                                 ? const Color(0xFF6B4423)
                                 : Colors.transparent,
-                            border: Border.all(
-                              color: const Color(0xFF6B4423),
-                              width: 2,
-                            ),
+                            border: Border.all(color: const Color(0xFF6B4423), width: 2),
                           ),
                         ),
                       );
@@ -242,7 +297,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
       case 1:
         return _buildChecklistSlide();
       case 2:
-        return _buildChecklist2Slide(); // ✅ New checklist slide
+        return _buildChecklist2Slide();
       case 3:
         return _buildChoosePetSlide();
       case 4:
