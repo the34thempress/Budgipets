@@ -17,15 +17,74 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   bool _isLoading = false;
   bool _passwordVisible = false;
 
+Future<void> showAccountPopup({
+      required BuildContext context,
+      required String title,
+      required String message,
+    }) {
+      return showDialog<void>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFFF5E6D3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+            ),
+            title: Text(
+              title,
+              style: const TextStyle(
+                fontFamily: 'Questrial',
+                color: Color(0xFF6B4423),
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            content: Text(
+              message,
+              style: const TextStyle(
+                fontFamily: 'Questrial',
+                color: Color(0xFF6B4423),
+                fontSize: 16,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(
+                    fontFamily: 'Questrial',
+                    color: Color(0xFF8B6443),
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+
   Future<void> _signUp() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final username = _usernameController.text.trim();
 
     if (email.isEmpty || password.isEmpty || username.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill in all fields")),
-      );
+      await showAccountPopup(
+        context: context,
+        title: 'Missing Information',
+        message: 'Please fill in all fields',
+);
+
       return;
     }
 
@@ -41,13 +100,12 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       );
 
       if (response.user != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              "Account created! Please verify your email before logging in.",
-            ),
-          ),
-        );
+        await showAccountPopup(
+            context: context,
+            title: 'Success',
+            message: 'Account created! Please verify your email before logging in.',
+          );
+
 
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) {
@@ -58,14 +116,20 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
         }
       }
       else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Sign-up failed. Try again.")),
+        await showAccountPopup(
+          context: context,
+          title: 'Sign-up Failed',
+          message: 'Sign-up failed. Try again.',
         );
+
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.toString()}")),
-      );
+        await showAccountPopup(
+          context: context,
+          title: 'Error',
+          message: e.toString(),
+        );
+
     } finally {
       setState(() => _isLoading = false);
     }
