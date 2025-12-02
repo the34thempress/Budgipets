@@ -11,7 +11,6 @@ import 'package:budgipets/pages/dashboard/set_budget_dialog.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
-
   @override
   State<DashboardPage> createState() => _DashboardPageState();
 }
@@ -20,22 +19,17 @@ class _DashboardPageState extends State<DashboardPage> {
   num? _balance;
   num? _goal;
   bool _loading = true;
-
   bool _editingAmount = false;
   bool _dialogOpen = false;
-
   RealtimeChannel? _budgetChannel;
-
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-
   final List<DateTime> _streakDays = [
     DateTime(2025, 10, 10),
     DateTime(2025, 10, 11),
     DateTime(2025, 10, 13),
     DateTime(2025, 10, 14),
   ];
-
   final List<DateTime> _missedDays = [
     DateTime(2025, 10, 8),
     DateTime(2025, 10, 9),
@@ -54,7 +48,6 @@ class _DashboardPageState extends State<DashboardPage> {
     super.dispose();
   }
 
-  //helpers
   DateTime _monthStart(DateTime dt) => DateTime(dt.year, dt.month, 1);
 
   Future<void> _loadOrCreateBudget() async {
@@ -70,22 +63,16 @@ class _DashboardPageState extends State<DashboardPage> {
         });
         return;
       }
-
-      debugPrint('Dashboard: userId=${user.id}');
-
       final ms = _monthStart(DateTime.now());
       final msStr =
           '${ms.year.toString().padLeft(4, '0')}-${ms.month.toString().padLeft(2, '0')}-01';
-
       final existing = await supabase
           .from('budgets')
           .select()
           .eq('user_id', user.id)
           .eq('month_start', msStr)
           .maybeSingle();
-
       if (!mounted) return;
-
       if (existing != null) {
         setState(() {
           _balance = (existing['balance'] as num?) ?? 0;
@@ -103,7 +90,6 @@ class _DashboardPageState extends State<DashboardPage> {
             })
             .select()
             .single();
-
         if (!mounted) return;
         setState(() {
           _balance = (inserted['balance'] as num?) ?? 0;
@@ -112,7 +98,6 @@ class _DashboardPageState extends State<DashboardPage> {
         });
       }
     } catch (e, st) {
-      debugPrint('Dashboard load error: $e\n$st');
       if (!mounted) return;
       setState(() {
         _loading = false;
@@ -131,11 +116,9 @@ class _DashboardPageState extends State<DashboardPage> {
   }) async {
     if (_dialogOpen) return null;
     if (!mounted) return null;
-
     _dialogOpen = true;
     final stable = context;
     final controller = TextEditingController(text: initial.toStringAsFixed(2));
-
     num? result;
     try {
       result = await showDialog<num>(
@@ -144,7 +127,8 @@ class _DashboardPageState extends State<DashboardPage> {
         barrierDismissible: true,
         builder: (ctx) {
           return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             title: Text(title, style: const TextStyle(fontFamily: "Modak")),
             content: TextField(
               controller: controller,
@@ -172,12 +156,10 @@ class _DashboardPageState extends State<DashboardPage> {
         },
       );
     } catch (e) {
-      debugPrint('promptNumber dialog error: $e');
       result = null;
     } finally {
       _dialogOpen = false;
     }
-
     return result;
   }
 
@@ -185,30 +167,25 @@ class _DashboardPageState extends State<DashboardPage> {
     final supabase = Supabase.instance.client;
     final user = supabase.auth.currentUser;
     if (user == null) return;
-
     final ms = _monthStart(DateTime.now());
     final msStr =
         '${ms.year.toString().padLeft(4, '0')}-${ms.month.toString().padLeft(2, '0')}-01';
-
     try {
       await supabase.from('budgets').upsert({
         'user_id': user.id,
         'month_start': msStr,
       }, onConflict: 'user_id,month_start');
-
       await supabase
           .from('budgets')
           .update({field: value})
           .eq('user_id', user.id)
           .eq('month_start', msStr);
-
       if (!mounted) return;
       setState(() {
         if (field == 'balance') _balance = value;
         if (field == 'goal') _goal = value;
       });
     } catch (e) {
-      debugPrint('Update $field failed: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update $field')),
@@ -216,359 +193,534 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  Widget _buildTopBarEmptyWithAvatar() {
+    return Container(
+      color: const Color(0xFF5C2E14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          const Expanded(child: SizedBox.shrink()),
+          GestureDetector(
+            onTap: () {
+              if (!mounted) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfilePage()),
+              );
+            },
+            child: const CircleAvatar(
+              radius: 22,
+              backgroundImage: AssetImage("assets/images/user.png"),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryTitle() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12.0, bottom: 8.0),
+      child: Center(
+        child: Text(
+          "Summary",
+          style: const TextStyle(
+            fontFamily: "Questrial",
+            fontSize: 34,
+            color: Color(0xFF4A2100),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBalanceAndGoalRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () async {
+                if (_editingAmount || _dialogOpen || _loading) return;
+                _editingAmount = true;
+                await showDialog(
+                  context: context,
+                  builder: (_) {
+                    return SetBudgetDialog(
+                      currentBudget: _balance ?? 0,
+                      onSave: (newBudget, password) async {
+                        final user = Supabase.instance.client.auth.currentUser;
+                        if (user == null) throw Exception("Not logged in");
+                        final result = await Supabase.instance.client.auth
+                            .signInWithPassword(
+                          email: user.email!,
+                          password: password,
+                        );
+                        if (result.session == null) {
+                          throw Exception("Invalid password");
+                        }
+                        await _updateBudgetField('balance', newBudget);
+                      },
+                    );
+                  },
+                );
+                _editingAmount = false;
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Balance:",
+                        style: TextStyle(
+                            color: Color(0xFFFFD79B),
+                            fontFamily: "Questrial",
+                            fontSize: 12)),
+                    const SizedBox(height: 6),
+                    Text(
+                      _loading ? "…" : "₱${(_balance ?? 0).toStringAsFixed(2)}",
+                      style: const TextStyle(
+                        fontFamily: "Questrial",
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Container(
+            width: 10,
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                  6,
+                  (i) => Container(
+                        margin: const EdgeInsets.symmetric(vertical: 2),
+                        width: 3,
+                        height: 3,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF2C1400),
+                          shape: BoxShape.circle,
+                        ),
+                      )),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () async {
+                if (_loading || _dialogOpen) return;
+                _editingAmount = true;
+                final v = await _promptNumber(
+                  title: "Set Goal",
+                  initial: _goal ?? 0,
+                );
+                if (v != null) {
+                  if (!mounted) {
+                    _editingAmount = false;
+                    return;
+                  }
+                  await _updateBudgetField('goal', v);
+                }
+                _editingAmount = false;
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Goal:",
+                        style: TextStyle(
+                            color: Color(0xFFFFD79B),
+                            fontFamily: "Questrial",
+                            fontSize: 12)),
+                    const SizedBox(height: 6),
+                    Text(
+                      _loading ? "…" : "₱${(_goal ?? 0).toStringAsFixed(2)}",
+                      style: const TextStyle(
+                        fontFamily: "Questrial",
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDaysAndPet() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                "34",
+                style: TextStyle(
+                  fontFamily: "PixelifySans",
+                  fontSize: 80,
+                  height: 1,
+                  color: Color(0xFF4A2100),
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                "DAYS",
+                style: TextStyle(
+                  fontFamily: "PixelifySans",
+                  fontSize: 20,
+                  color: Color(0xFF4A2100),
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          Image.asset(
+            "assets/images/dog.png",
+            height: 110,
+            width: 110,
+            fit: BoxFit.contain,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCalendarCard() {
+    const outsideColor = Color(0xFFD9B896);
+    const dayTextColor = Color(0xFFFFD79B);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF3E1D01),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        child: Column(
+          children: [
+            TableCalendar(
+              firstDay: DateTime.utc(2020, 1, 1),
+              lastDay: DateTime.utc(2030, 12, 31),
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              },
+              headerStyle: HeaderStyle(
+                titleCentered: true,
+                formatButtonVisible: false,
+                titleTextStyle: const TextStyle(
+                    fontFamily: "Questrial",
+                    fontSize: 18,
+                    color: Color(0xFFFADEC6),
+                    fontWeight: FontWeight.w700),
+                leftChevronIcon:
+                    const Icon(Icons.chevron_left, color: Color(0xFFFADEC6)),
+                rightChevronIcon:
+                    const Icon(Icons.chevron_right, color: Color(0xFFFADEC6)),
+              ),
+              daysOfWeekStyle: const DaysOfWeekStyle(
+                weekdayStyle: TextStyle(
+                    color: Color(0xFFFFD79B),
+                    fontFamily: "Questrial",
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12),
+                weekendStyle: TextStyle(
+                    color: Color(0xFFFFD79B),
+                    fontFamily: "Questrial",
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12),
+              ),
+              startingDayOfWeek: StartingDayOfWeek.sunday,
+              calendarStyle: const CalendarStyle(
+                defaultTextStyle: TextStyle(
+                    color: dayTextColor, fontFamily: "Questrial", fontSize: 13),
+                weekendTextStyle: TextStyle(
+                    color: dayTextColor, fontFamily: "Questrial", fontSize: 13),
+                outsideTextStyle:
+                    TextStyle(color: outsideColor, fontFamily: "Questrial"),
+                isTodayHighlighted: false,
+                selectedDecoration: BoxDecoration(
+                  color: Color(0xFFFFD79B),
+                  shape: BoxShape.circle,
+                ),
+                selectedTextStyle: TextStyle(
+                  color: Color(0xFF5C2E14),
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "Questrial",
+                ),
+                cellMargin: EdgeInsets.zero,
+              ),
+              calendarBuilders: CalendarBuilders(
+                dowBuilder: (context, day) {
+                  const labels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+                  final idx = day.weekday % 7;
+                  return Center(
+                    child: Text(
+                      labels[idx],
+                      style: const TextStyle(
+                        color: Color(0xFFFFD79B),
+                        fontFamily: "Questrial",
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
+                  );
+                },
+                defaultBuilder: (context, day, focusedDay) {
+                  final isStreak = _streakDays.any((d) => isSameDay(d, day));
+                  final isMissed = _missedDays.any((d) => isSameDay(d, day));
+                  final isToday = isSameDay(day, DateTime.now());
+                  final isSelected = isSameDay(day, _selectedDay);
+                  if (isSelected) return null;
+                  Color? bgColor;
+                  BoxBorder? border;
+                  TextStyle textStyle = const TextStyle(
+                      color: dayTextColor, fontFamily: "Questrial", fontSize: 13);
+                  if (isStreak) {
+                    bgColor = const Color(0xFFF4D6C1);
+                    textStyle = const TextStyle(
+                      color: Color(0xFF5C2E14),
+                      fontWeight: FontWeight.bold,
+                      fontFamily: "Questrial",
+                      fontSize: 13,
+                    );
+                  } else if (isMissed) {
+                    bgColor = const Color(0xFFD7B59B);
+                  } else if (isToday) {
+                    border = Border.all(color: const Color(0xFFFFE4B3), width: 2);
+                  }
+                  return Center(
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      margin: const EdgeInsets.symmetric(vertical: 2),
+                      decoration: BoxDecoration(
+                        color: bgColor,
+                        shape: BoxShape.circle,
+                        border: border,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text("${day.day}", style: textStyle),
+                    ),
+                  );
+                },
+                outsideBuilder: (context, day, focusedDay) {
+                  return Center(
+                    child: Text(
+                      "${day.day}",
+                      style: const TextStyle(
+                        color: outsideColor,
+                        fontFamily: "Questrial",
+                        fontSize: 13,
+                      ),
+                    ),
+                  );
+                },
+                todayBuilder: (context, day, focusedDay) {
+                  if (isSameDay(day, _selectedDay)) return null;
+                  return Center(
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      margin: const EdgeInsets.symmetric(vertical: 2),
+                      decoration: BoxDecoration(
+                        border:
+                            Border.all(color: const Color(0xFFFFE4B3), width: 2),
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text("${day.day}",
+                          style: const TextStyle(
+                              color: dayTextColor, fontFamily: "Questrial")),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    const bottomBarColor = Color(0xFF5C2E14);
+    const accentText = Color(0xFFFADEC6);
     return Scaffold(
       backgroundColor: const Color(0xFFF4D6C1),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-
-              // Header
-              Container(
-                color: const Color(0xFF5C2E14),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Hello, Jarod!",
-                      style: TextStyle(
-                        fontFamily: "Modak",
-                        fontSize: 45,
-                        color: Color(0xFFFADEC6),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        if (!mounted) return;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ProfilePage()),
-                        );
-                      },
-                      child: const CircleAvatar(
-                        radius: 26,
-                        backgroundImage: AssetImage("assets/images/user.png"),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              GestureDetector(
-                onTap: () async {
-                  if (_editingAmount || _dialogOpen) return;
-                  if (!mounted) return;
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LogEntryPage()),
-                  );
-                  if (!mounted) return;
-                  await _loadOrCreateBudget();
-                },
-
-                child: Container(
-                  color: const Color(0xFFFADEC6),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Balance:",
-                        style: TextStyle(
-                          fontFamily: "Questrial",
-                          fontSize: 25,
-                          color: Color(0xFF2C1400),
-                        ),
-                      ),
-                      GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onTap: () async {
-                          if (_loading || _dialogOpen) return;
-                          _editingAmount = true;
-                          await showDialog(
-                          context: context,
-                          builder: (_) {
-                            return SetBudgetDialog(
-                              currentBudget: _balance ?? 0,
-                              onSave: (newBudget, password) async {
-                                final user = Supabase.instance.client.auth.currentUser;
-                                if (user == null) throw Exception("Not logged in");
-
-                                final result = await Supabase.instance.client.auth.signInWithPassword(
-                                  email: user.email!,
-                                  password: password,
-                                );
-
-                                if (result.session == null) {
-                                  throw Exception("Invalid password");
-                                }
-
-                                await _updateBudgetField('balance', newBudget);
-                              },
-                            );
-                          },
-                        );
-
-                          if (mounted) setState(() {});
-                          _editingAmount = false;
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6.0),
-                          child: Text(
-                            _loading
-                                ? "…"
-                                : "₱${(_balance ?? 0).toStringAsFixed(2)}",
-                            style: const TextStyle(
-                              fontFamily: "Questrial",
-                              fontSize: 45,
-                              color: Color(0xFF2C1400),
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Calendar
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                color: const Color(0xFF5C2E14),
-                child: TableCalendar(
-                  firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.utc(2030, 12, 31),
-                  focusedDay: _focusedDay,
-                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                  onDaySelected: (selectedDay, focusedDay) {
-                    setState(() {
-                      _selectedDay = selectedDay;
-                      _focusedDay = focusedDay;
-                    });
-                  },
-                  headerStyle: const HeaderStyle(
-                    titleCentered: true,
-                    formatButtonVisible: false,
-                    titleTextStyle: TextStyle(
-                      fontFamily: "Modak",
-                      fontSize: 22,
-                      color: Colors.white,
-                    ),
-                    leftChevronIcon:
-                        Icon(Icons.chevron_left, color: Colors.white),
-                    rightChevronIcon:
-                        Icon(Icons.chevron_right, color: Colors.white),
-                  ),
-                  daysOfWeekStyle: const DaysOfWeekStyle(
-                    weekdayStyle:
-                        TextStyle(color: Colors.white, fontFamily: "Questrial"),
-                    weekendStyle:
-                        TextStyle(color: Colors.white, fontFamily: "Questrial"),
-                  ),
-                  calendarStyle: const CalendarStyle(
-                    defaultTextStyle:
-                        TextStyle(color: Colors.white, fontFamily: "Questrial"),
-                    weekendTextStyle:
-                        TextStyle(color: Colors.white, fontFamily: "Questrial"),
-                    outsideTextStyle: TextStyle(
-                        color: Color(0xFFD9B896), fontFamily: "Questrial"),
-                    cellMargin: EdgeInsets.all(6),
-                    isTodayHighlighted: false,
-                    selectedDecoration: BoxDecoration(
-                      color: Color(0xFFFFD79B),
-                      shape: BoxShape.circle,
-                    ),
-                    selectedTextStyle: TextStyle(
-                      color: Color(0xFF5C2E14),
-                      fontWeight: FontWeight.bold,
-                      fontFamily: "Questrial",
-                    ),
-                  ),
-                  calendarBuilders: CalendarBuilders(
-                    defaultBuilder: (context, day, _) {
-                      final isStreak =
-                          _streakDays.any((d) => isSameDay(d, day));
-                      final isMissed =
-                          _missedDays.any((d) => isSameDay(d, day));
-                      final isToday = isSameDay(day, DateTime.now());
-                      final isSelected = isSameDay(day, _selectedDay);
-
-                      if (isSelected) return null;
-
-                      Color? bgColor;
-                      BoxBorder? border;
-                      TextStyle textStyle = const TextStyle(
-                        color: Colors.white,
-                        fontFamily: "Questrial",
-                      );
-
-                      if (isStreak) {
-                        bgColor = const Color(0xFFF4D6C1);
-                        textStyle = const TextStyle(
-                          color: Color(0xFF5C2E14),
-                          fontWeight: FontWeight.bold,
-                          fontFamily: "Questrial",
-                        );
-                      } else if (isMissed) {
-                        bgColor = const Color(0xFFD7B59B);
-                      } else if (isToday) {
-                        border = Border.all(
-                            color: const Color(0xFFFFE4B3), width: 3);
-                      }
-
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: bgColor,
-                          shape: BoxShape.circle,
-                          border: border,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text("${day.day}", style: textStyle),
-                      );
-                    },
-                  ),
-                ),
-              ),
-
-              // Goal
-              Container(
-                color: const Color(0xFF8C501D),
-                padding: const EdgeInsets.symmetric(vertical: 1),
-                child: Column(
-                  children: [
-                    const Text(
-                      "Current Goal:",
-                      style: TextStyle(
-                        color: Color(0xFFFADEC6),
-                        fontFamily: "Questrial",
-                        fontSize: 21,
-                      ),
-                    ),
-                    GestureDetector(
-                      behavior: HitTestBehavior.translucent,
-                      onTap: () async {
-                        if (_loading || _dialogOpen) return;
-                        _editingAmount = true;
-                        final v = await _promptNumber(
-                          title: "Set Goal",
-                          initial: _goal ?? 0,
-                        );
-                        if (v != null) {
-                          if (!mounted) { _editingAmount = false; return; }
-                          await _updateBudgetField('goal', v);
-                        }
-                        if (mounted) setState(() {});
-                        _editingAmount = false;
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6.0),
-                        child: Text(
-                          _loading
-                              ? "…"
-                              : "₱${(_goal ?? 0).toStringAsFixed(2)}",
-                          style: const TextStyle(
-                            fontFamily: "Questrial",
-                            fontSize: 45,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFFADEC6),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Streak + Pet
-              Container(
-                color: const Color(0xFFFADEC6),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Column(
-                      children: const [
-                        Text(
-                          "34",
-                          style: TextStyle(
-                            fontFamily: "PixelifySans",
-                            fontSize: 80,
-                            height: 1,
-                            color: Color(0xFF4A2100),
-                          ),
-                        ),
-                        Text(
-                          "DAYS",
-                          style: TextStyle(
-                            fontFamily: "PixelifySans",
-                            fontSize: 22,
-                            color: Color(0xFF4A2100),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Image.asset(
-                      "assets/images/dog.png",
-                      height: 130,
-                    ),
-                  ],
-                ),
-              ),
+              _buildTopBarEmptyWithAvatar(),
+              _buildSummaryTitle(),
+              _buildDaysAndPet(),
+              _buildBalanceAndGoalRow(),
+              _buildCalendarCard(),
+              const SizedBox(height: 16),
             ],
           ),
         ),
       ),
-
-      //Bottom nav
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xFF5C2E14),
-        selectedItemColor: const Color(0xFFFADEC6),
-        unselectedItemColor: const Color(0xFFFADEC6),
-        currentIndex: 2,
-        type: BottomNavigationBarType.fixed,
-        onTap: (index) async {
-          if (!mounted || _dialogOpen) return;
-          if (index == 0) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const SettingsPage()));
-          } else if (index == 1) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const PetManagementPage()));
-          }
-          
-          else if (index == 2) {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LogEntryPage()),
-            );
-            if (!mounted) return;
-            await _loadOrCreateBudget();
-          }
-
-          else if (index == 3) {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (_) => const LogsPage()));
-          } else if (index == 4) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const StorePage()));
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
-          BottomNavigationBarItem(icon: Icon(Icons.pets), label: "Pet"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.add_circle_rounded), label: "Log"),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: "History"),
-          BottomNavigationBarItem(icon: Icon(Icons.storefront), label: "Store"),
-        ],
+      bottomNavigationBar: SizedBox(
+        height: 80,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              height: 80,
+              decoration: const BoxDecoration(
+                color: bottomBarColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      if (!mounted || _dialogOpen) return;
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const SettingsPage()));
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.settings, color: accentText),
+                        SizedBox(height: 4),
+                        Text("Settings",
+                            style: TextStyle(
+                                color: accentText,
+                                fontFamily: "Questrial",
+                                fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      if (!mounted || _dialogOpen) return;
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const PetManagementPage()));
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.pets, color: accentText),
+                        SizedBox(height: 4),
+                        Text("Pet",
+                            style: TextStyle(
+                                color: accentText,
+                                fontFamily: "Questrial",
+                                fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 96),
+                  InkWell(
+                    onTap: () {
+                      if (!mounted || _dialogOpen) return;
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const LogsPage()));
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.list_alt, color: accentText),
+                        SizedBox(height: 4),
+                        Text("History",
+                            style: TextStyle(
+                                color: accentText,
+                                fontFamily: "Questrial",
+                                fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      if (!mounted || _dialogOpen) return;
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const StorePage()));
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.storefront, color: accentText),
+                        SizedBox(height: 4),
+                        Text("Store",
+                            style: TextStyle(
+                                color: accentText,
+                                fontFamily: "Questrial",
+                                fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              top: -18,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: GestureDetector(
+                  onTap: () async {
+                    if (!mounted || _dialogOpen) return;
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LogEntryPage()),
+                    );
+                    if (!mounted) return;
+                    await _loadOrCreateBudget();
+                  },
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: bottomBarColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF3F2411), width: 2),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.add, size: 32, color: accentText),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
