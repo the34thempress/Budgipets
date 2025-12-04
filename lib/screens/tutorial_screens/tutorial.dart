@@ -360,7 +360,7 @@ void handleNext() {
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 32),
           child: Text(
-            'A tool that gamifies your budgeting journey. The more you save, the better your pet will be.',
+            'A tool that gamifies your budgeting journey.',
             style: TextStyle(
               fontSize: 19,
               color: Color(0xFF6B4423),
@@ -374,74 +374,105 @@ void handleNext() {
     );
   }
 
-  Widget _buildChecklistSlide() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          const Text(
-            'Checklist',
-            style: TextStyle(
-              fontSize: 38,
-              color: Color(0xFF6B4423),
-              fontFamily: 'Questrial',
-              fontWeight: FontWeight.w400,
+Widget _buildChecklistSlide() {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final screenHeight = constraints.maxHeight;
+      final isLargeScreen = screenHeight > 700;
+      
+      final titleSpacing = isLargeScreen ? 60.0 : screenHeight * 0.08;
+      final itemSpacing = isLargeScreen ? 60.0 : screenHeight * 0.06;
+      
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Checklist',
+              style: TextStyle(
+                fontSize: isLargeScreen ? 38 : screenHeight * 0.05,
+                color: const Color(0xFF6B4423),
+                fontFamily: 'Questrial',
+                fontWeight: FontWeight.w400,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 60),
-          _buildChecklistItem(
-            'Step 1:',
-            'Choose Your Pet',
-            'Your brand new budget accountability buddy! Choose wisely as this pet will accompany you on your budgeting journey.',
-            'assets/images/dog_egg.png',
-          ),
-          const SizedBox(height: 60),
-          _buildChecklistItem(
-            'Step 2:',
-            'Set Your Budget',
-            'Your allowance will determine how much you can spend each month. We will help you keep track!',
-            'assets/images/puppy.png',
-          ),
-        ],
-      ),
-    );
-  }
+            SizedBox(height: titleSpacing),
+            Flexible(
+              child: _buildChecklistItem(
+                'Step 1:',
+                'Choose Your Pet',
+                'Your brand new budget accountability buddy! Choose wisely as this pet will accompany you on your budgeting journey.',
+                'assets/images/dog_egg.png',
+              ),
+            ),
+            SizedBox(height: itemSpacing),
+            Flexible(
+              child: _buildChecklistItem(
+                'Step 2:',
+                'Set Your Budget',
+                'Your allowance will determine how much you can spend each month. We will help you keep track!',
+                'assets/images/puppy.png',
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
-  // ✅ New checklist slide (identical structure for you to edit)
-  Widget _buildChecklist2Slide() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          const Text(
-            'Checklist', // ✅ Edit this title
-            style: TextStyle(
-              fontSize: 38,
-              color: Color(0xFF6B4423),
-              fontFamily: 'Questrial',
-              fontWeight: FontWeight.w400,
+Widget _buildChecklist2Slide() {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final screenHeight = constraints.maxHeight;
+      final isLargeScreen = screenHeight > 700;
+      
+      final titleSpacing = isLargeScreen ? 60.0 : screenHeight * 0.08;
+      final itemSpacing = isLargeScreen ? 60.0 : screenHeight * 0.06;
+      
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Checklist',
+              style: TextStyle(
+                fontSize: isLargeScreen ? 38 : screenHeight * 0.05,
+                color: const Color(0xFF6B4423),
+                fontFamily: 'Questrial',
+                fontWeight: FontWeight.w400,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 60),
-          _buildChecklistItem(
-            'Step 3:', // ✅ Edit this
-            'Log Your Transactions', // ✅ Edit this
-            'Make sure you log all your expenses or incomes every day! You will get currency and evolution tokens for your pet!', // ✅ Edit this
-            'assets/images/coin.png', // ✅ Edit this image path
-          ),
-          const SizedBox(height: 60),
-          _buildChecklistItem(
-            'Step 4:', // ✅ Edit this
-            'Go Shopping!', // ✅ Edit this
-            'As you continue to log your transactions, you will have enough currency to buy accessories. Personalize your Budgipet while being financially responsible!', // ✅ Edit this
-            'assets/images/bow.png', // ✅ Edit this image path
-          ),
-        ],
-      ),
-    );
-  }
+            SizedBox(height: titleSpacing),
+            Flexible(
+              child: _buildChecklistItem(
+                'Step 3:',
+                'Log Your Transactions',
+                'Make sure you log all your expenses or incomes every day! You will get currency and evolution tokens for your pet!',
+                'assets/images/coin.png',
+              ),
+            ),
+            SizedBox(height: itemSpacing),
+            Flexible(
+              child: _buildChecklistItem(
+                'Step 4:',
+                'Go Shopping!',
+                'As you continue to log your transactions, you will have enough currency to buy accessories. Personalize your Budgipet while being financially responsible!',
+                'assets/images/bow.png',
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
   Widget _buildChecklistItem(
       String step, String title, String description, String imagePath) {

@@ -12,8 +12,8 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
   bool _passwordVisible = false;
 
   // Hardcoded values for verification
-  final String _correctPassword = "myMadeUpPassword!";
-  final String _correctPetName = "chubi";
+  final String _correctPassword = "duckduckgoose1!";
+  final String _correctPetName = "Chubi";
 
   final Color darkBrown = const Color(0xFF5C2E14);
   final Color lightBrown = const Color(0xFFF4D6C1);

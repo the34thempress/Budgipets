@@ -54,47 +54,101 @@ class _StorePageState extends State<StorePage> {
         .eq('id', user.id);
   }
 
-  final List<Map<String, dynamic>> storeItems = [
-    {
-      'name': 'Streak Freeze',
-      'description':
-          'Out for vacation? Or perhaps a digital break? Streak freeze allows you to freeze your current streak to save your pet’s life!',
-      'price': 50,
-      'image': 'assets/images/streakfreeze.png',
-    },
-    {
-      'name': 'Cool Glasses',
-      'description': 'You may equip this to your pet. “amazing”.',
-      'price': 199,
-      'image': 'assets/images/shades.png',
-    },
-    {
-      'name': 'Bow',
-      'description':
-          'You may equip this to your pet. Your pet’s girliness is through the roof.',
-      'price': 150,
-      'image': 'assets/images/bow.png',
-    },
-    {
-      'name': 'Dexter’s Tie',
-      'description':
-          'You may equip this to your pet. Nice tie, surely, one must follow a strict code for his dark passenger.',
-      'price': 89,
-      'image': 'assets/images/necktie.png',
-    },
-    {
-      'name': 'Dog Egg',
-      'description': 'When this egg hatches. Get a random dog breed!',
-      'price': 249,
-      'image': 'assets/images/dog_egg.png',
-    },
-    {
-      'name': 'Cat Egg',
-      'description': 'When this egg hatches. Get a random cat breed!',
-      'price': 249,
-      'image': 'assets/images/cat_egg.png',
-    },
-  ];
+final List<Map<String, dynamic>> storeItems = [
+  {
+    'name': 'Streak Freeze',
+    'description':
+        'This item allows you to freeze your current streak to save your pet\'s life!', // ← Added backslash before 's
+    'price': 50,
+    'image': 'assets/images/streakfreeze.png',
+  },
+  {
+    'name': 'Cool Glasses',
+    'description': 'Maximize your pet\'s swag and aura with these stylish shades!', // ← Fixed quotes
+    'price': 100,
+    'image': 'assets/images/shades.png',
+  },
+  {
+    'name': 'Bow',
+    'description':
+        'The cutest little head accessory for the girlies!', // ← Added backslash before 's
+    'price': 100,
+    'image': 'assets/images/bow.png',
+  },
+  {
+    'name': 'Dexter\'s Tie', // ← Added backslash before 's
+    'description':
+        'You may equip this to your pet. Nice tie, surely, one must follow a strict code for his dark passenger.',
+    'price': 100,
+    'image': 'assets/images/necktie.png',
+  },
+  {
+    'name': 'Dog Egg',
+    'description': 'When this egg hatches. Get a random dog breed!',
+    'price': 249,
+    'image': 'assets/images/dog_egg.png',
+  },
+  {
+    'name': 'Cat Egg',
+    'description': 'When this egg hatches. Get a random cat breed!',
+    'price': 249,
+    'image': 'assets/images/cat_egg.png',
+  },
+];
+
+  void _showSuccessPurchaseDialog(String itemName) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFFF5E6D3),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+        ),
+        title: const Text(
+          'Purchase Successful!',
+          style: TextStyle(
+            fontFamily: 'Questrial',
+            color: Color(0xFF6B4423),
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        content: Text(
+          'You purchased $itemName!',
+          style: const TextStyle(
+            fontFamily: 'Questrial',
+            color: Color(0xFF6B4423),
+            fontSize: 16,
+            height: 1.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6B4423),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+            child: const Text(
+              'OK',
+              style: TextStyle(
+                fontFamily: 'Questrial',
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
+        actionsAlignment: MainAxisAlignment.center,
+      ),
+    );
+  }
 
   void _showConfirmDialog(Map<String, dynamic> item) {
     showDialog(
@@ -102,36 +156,68 @@ class _StorePageState extends State<StorePage> {
       builder: (context) {
         bool canAfford = coins >= item['price'];
         return AlertDialog(
-          backgroundColor: pageColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: const Color(0xFFF5E6D3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+          ),
           title: Text(
             'Purchase ${item['name']}?',
             style: const TextStyle(
               fontFamily: 'Questrial',
-              color: darkBrown,
+              color: Color(0xFF6B4423),
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
             ),
+            textAlign: TextAlign.center,
           ),
           content: Text(
             canAfford
                 ? 'This will cost ${item['price']} coins.'
-                : 'You don’t have enough coins to buy this item.',
+                : 'You don\'t have enough coins to buy this item.',
             style: const TextStyle(
               fontFamily: 'Questrial',
-              color: darkBrown,
+              color: Color(0xFF6B4423),
+              fontSize: 16,
+              height: 1.5,
             ),
+            textAlign: TextAlign.center,
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(
-                  fontFamily: 'Questrial',
-                  color: darkBrown,
+            if (!canAfford)
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6B4423),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(
+                    fontFamily: 'Questrial',
+                    fontSize: 16,
+                  ),
                 ),
               ),
-            ),
-            if (canAfford)
+            if (canAfford) ...[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(
+                    fontFamily: 'Questrial',
+                    color: Color(0xFF8B6443),
+                    fontSize: 16,
+                  ),
+                ),
+              ),
               ElevatedButton(
                 onPressed: () async {
                   final price = item['price'] as int;
@@ -140,32 +226,27 @@ class _StorePageState extends State<StorePage> {
                   await _updateCoins(newCoins);
 
                   Navigator.pop(context);
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'You purchased ${item['name']}!',
-                        style: const TextStyle(fontFamily: 'Questrial'),
-                      ),
-                      backgroundColor: darkBrown,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
+                  _showSuccessPurchaseDialog(item['name']);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: darkBrown,
+                  backgroundColor: const Color(0xFF6B4423),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
                 ),
                 child: const Text(
                   'Confirm',
                   style: TextStyle(
                     fontFamily: 'Questrial',
-                    color: Colors.white,
+                    fontSize: 16,
                   ),
                 ),
               ),
+            ],
           ],
+          actionsAlignment: MainAxisAlignment.center,
         );
       },
     );
@@ -199,7 +280,8 @@ class _StorePageState extends State<StorePage> {
                 fit: BoxFit.contain,
               ),
             ),
-            const SizedBox(width: 16),
+          ),
+          const SizedBox(width: 12),
 
             Expanded(
               child: Column(
@@ -214,19 +296,23 @@ class _StorePageState extends State<StorePage> {
                       color: darkBrown,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    item['description'],
-                    style: const TextStyle(
-                      fontFamily: 'Questrial',
-                      fontSize: 13.5,
-                      color: darkBrown,
-                      height: 1.3,
-                    ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  item['description'],
+                  style: const TextStyle(
+                    fontFamily: 'Questrial',
+                    fontSize: 13.5,
+                    color: darkBrown,
+                    height: 1.3,
                   ),
-                ],
-              ),
+                  maxLines: 3, // Added to limit text lines
+                  overflow: TextOverflow.ellipsis, // Added to show ... if too long
+                ),
+              ],
             ),
+          ),
+          const SizedBox(width: 5), // Added spacing between text and price
 
             Container(
               padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
@@ -250,15 +336,26 @@ class _StorePageState extends State<StorePage> {
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Text(
+                      '${item['price']}',
+                      style: const TextStyle(
+                        fontFamily: 'Questrial',
+                        fontSize: 14,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
 @override
@@ -267,6 +364,7 @@ Widget build(BuildContext context) {
     backgroundColor: const Color(0xFFFFF3E0),
     body: Column(
       children: [
+        // HEADER
         CommonHeader(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -318,7 +416,7 @@ Widget build(BuildContext context) {
           ),
         ),
 
-        // +1 / -1 buttons
+        // +1 / -1 Buttons
         Padding(
           padding: const EdgeInsets.only(top: 10, bottom: 8),
           child: Row(
@@ -363,6 +461,7 @@ Widget build(BuildContext context) {
           ),
         ),
 
+        // STORE ITEMS
         Expanded(
           child: ListView.builder(
             itemCount: storeItems.length,
@@ -374,6 +473,4 @@ Widget build(BuildContext context) {
       ],
     ),
   );
-}
-
 }

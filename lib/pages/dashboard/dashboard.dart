@@ -161,7 +161,7 @@ Future<double?> _promptNumber({
                 autofocus: true,
                 keyboardType: TextInputType.number,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Color(0xFF3E1D01),
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
                   fontFamily: "Questrial",
@@ -508,7 +508,7 @@ Future<double?> _promptNumber({
                       Column(
                         children: const [
                           Text(
-                            "34",
+                            "0",
                             style: TextStyle(
                               fontFamily: "PixelifySans",
                               fontSize: 90,
@@ -528,7 +528,7 @@ Future<double?> _promptNumber({
                       ),
                       const SizedBox(width: 15),
                       Image.asset(
-                        "assets/images/dog.png",
+                        "assets/images/dog_egg.png",
                         height: 140,
                       ),
                     ],
