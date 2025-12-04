@@ -18,58 +18,151 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   bool _otpSent = false;
   bool _otpVerified = false;
 
-  // Step 1: Send OTP to email
-  void _sendOTP() async {
-    final email = _emailController.text.trim();
+  Future<void> showInfoPopup({
+  required BuildContext context,
+  required String title,
+  required String message,
+}) {
+  final screenWidth = MediaQuery.of(context).size.width;
+  final dialogWidth = screenWidth - 40; // 20px padding each side
 
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter your email")),
-      );
-      return;
-    }
+  return showDialog<void>(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+        child: SizedBox(
+          width: dialogWidth,
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5E6D3),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF6B4423), width: 3),
+            ),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Logo
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 70,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 16),
 
-    if (!email.contains('@') || !email.contains('.')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a valid email")),
-      );
-      return;
-    }
+                // Title
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontFamily: 'Questrial',
+                    color: Color(0xFF6B4423),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
 
-    setState(() {
-      _isLoading = true;
-    });
+                // Message
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontFamily: 'Questrial',
+                    color: Color(0xFF6B4423),
+                    fontSize: 16,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
 
-    try {
-      final supabase = Supabase.instance.client;
-      
-      // Send OTP via email
-      await supabase.auth.signInWithOtp(
-        email: email,
-      );
-
-      setState(() {
-        _isLoading = false;
-        _otpSent = true;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Verification code sent to your email!"),
-          backgroundColor: Color(0xFF4A2C1A),
+                // Full-width brown OKAY button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6B4423),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'OKAY',
+                      style: TextStyle(
+                        fontFamily: 'Questrial',
+                        color: Color(0xFFFFE8C7),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       );
+    },
+  );
+}
 
-    } catch (error) {
-      setState(() {
-        _isLoading = false;
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${error.toString()}")),
-      );
-    }
+
+  // Step 1: Send OTP to email
+  void _sendOTP() async {
+  final email = _emailController.text.trim();
+
+  if (email.isEmpty) {
+    await showInfoPopup(
+      context: context,
+      title: "Oops!",
+      message: "Please enter your email",
+    );
+    return;
   }
+
+  if (!email.contains('@') || !email.contains('.')) {
+    await showInfoPopup(
+      context: context,
+      title: "Invalid Email",
+      message: "Please enter a valid email",
+    );
+    return;
+  }
+
+  setState(() => _isLoading = true);
+
+  try {
+    final supabase = Supabase.instance.client;
+
+    await supabase.auth.signInWithOtp(email: email);
+
+    setState(() {
+      _isLoading = false;
+      _otpSent = true;
+    });
+
+    await showInfoPopup(
+      context: context,
+      title: "Success!",
+      message: "Verification code sent to your email!",
+    );
+
+  } catch (error) {
+    setState(() => _isLoading = false);
+
+    await showInfoPopup(
+      context: context,
+      title: "Error",
+      message: "Failed to send OTP. ${error.toString()}",
+    );
+  }
+}
+
 
   // Step 2: Verify OTP
   void _verifyOTP() async {
@@ -77,8 +170,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     final otp = _otpController.text.trim();
 
     if (otp.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter the verification code")),
+      await showInfoPopup(
+        context: context,
+        title: "OTP Empty",
+        message: "OTP field cannot be empty. Please enter the code sent to your email.",
       );
       return;
     }
@@ -102,11 +197,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         _otpVerified = true;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Code verified! Now set your new password."),
-          backgroundColor: Color(0xFF4A2C1A),
-        ),
+        await showInfoPopup(
+        context: context,
+        title: "Code Verified!",
+        message: "Now set your new password.",
       );
 
     } catch (error) {
@@ -114,8 +208,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         _isLoading = false;
       });
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Invalid code. Please try again.")),
+      await showInfoPopup(
+        context: context,
+        title: "Error Verifying OTP",
+        message: "Failed to verify OTP. ${error.toString()}",
       );
     }
   }
@@ -126,22 +222,28 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     final confirmPassword = _confirmPasswordController.text.trim();
 
     if (newPassword.isEmpty || confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill in all fields")),
+        await showInfoPopup(
+        context: context,
+        title: "Password Empty",
+        message: "Please fill in both password fields.",
       );
       return;
     }
 
     if (newPassword.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Password must be at least 6 characters")),
+      await showInfoPopup(
+        context: context,
+        title: "Password Too Short",
+        message: "Password must be at least 6 characters long.",
       );
       return;
     }
 
     if (newPassword != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Passwords do not match")),
+      await showInfoPopup(
+        context: context,
+        title: "Password Mismatch",
+        message: "Passwords do not match. Please try again.",
       );
       return;
     }
@@ -162,11 +264,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         _isLoading = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Password updated successfully!"),
-          backgroundColor: Color(0xFF4A2C1A),
-        ),
+      await showInfoPopup(
+        context: context,
+        title: "Password Updated!",
+        message: "Your password has been successfully updated.",
       );
 
       // Sign out and go back to login
@@ -183,8 +284,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         _isLoading = false;
       });
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${error.toString()}")),
+      await showInfoPopup(
+        context: context,
+        title: "Error Updating Password",
+        message: "Failed to update password. ${error.toString()}",
       );
     }
   }
@@ -211,12 +314,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 60),
 
               // Logo
               Image.asset(
                 "assets/images/logo.png",
-                height: 200,
+                height: 120,
               ),
               const SizedBox(height: 20),
 
