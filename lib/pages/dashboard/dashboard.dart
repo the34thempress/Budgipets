@@ -8,6 +8,7 @@ import 'package:budgipets/pages/settings/settings_page.dart';
 import 'package:budgipets/pages/logs/log_history.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:budgipets/pages/dashboard/set_budget_dialog.dart';
+import 'package:budgipets/controllers/audio_manager.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -16,6 +17,7 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  final AudioService _audioService = AudioService();
   num? _balance;
   num? _goal;
   bool _loading = true;
@@ -40,6 +42,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _loadOrCreateBudget();
+    _audioService.playMusic();
   }
 
   @override
@@ -299,21 +302,6 @@ Future<double?> _promptNumber({
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // 👤 AVATAR ON THE LEFT
-        GestureDetector(
-          onTap: () {
-            if (!mounted) return;
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ProfilePage()),
-            );
-          },
-          child: const CircleAvatar(
-            radius: 30,
-            backgroundImage: AssetImage("assets/images/user.png"),
-          ),
-        ),
-
         // 🪙 COINS WITH CONTAINER ON THE RIGHT
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -428,6 +416,7 @@ Future<double?> _promptNumber({
               ),
             ),
           ),
+          SizedBox(width: 7), // space before divider
           Container(
             width: 10,
             alignment: Alignment.center,
@@ -436,16 +425,13 @@ Future<double?> _promptNumber({
               children: List.generate(
                   6,
                   (i) => Container(
-                        margin: const EdgeInsets.symmetric(vertical: 2),
-                        width: 3,
-                        height: 3,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF582901),
-                          shape: BoxShape.circle,
-                        ),
+                        width: 1,                        // thickness of line
+                        height: 10,                      // adjust to match card height
+                        color: Color(0xFF582901),        // same dark brown color
                       )),
             ),
           ),
+          SizedBox(width: 7), // space before divider
           Expanded(
             child: GestureDetector(
               onTap: () async {

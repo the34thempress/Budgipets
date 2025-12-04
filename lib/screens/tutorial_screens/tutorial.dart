@@ -30,84 +30,156 @@ class _TutorialScreenState extends State<TutorialScreen> {
     super.dispose();
   }
 
-Future<void> showStyledPopup(String message) async {
+Future<void> showStyledPopup({
+  required BuildContext context,
+  required String title,
+  required String message,
+}) async {
   return showDialog(
     context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: const Color(0xFFFDE6D0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Color(0xFF6B4423), width: 3),
-      ),
-      title: const Text(
-        'Notice',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontFamily: 'Questrial',
-          color: Color(0xFF6B4423),
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      content: Text(
-        message,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontFamily: 'Questrial',
-          color: Color(0xFF6B4423),
-          fontSize: 16,
-          height: 1.5,
-        ),
-      ),
-      actions: [
-        Center(
-          child: ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B4423),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+    builder: (context) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final maxWidth = (constraints.maxWidth * 0.9).clamp(0, 500.0) as double;
+
+          return AlertDialog(
+            backgroundColor: const Color(0xFFFDE6D0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+            ),
+            contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+            insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+
+            // FORCE POPUP WIDTH
+            content: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Logo
+                  Image.asset(
+                    'assets/images/logo.png',
+                    height: 70,
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  // Title
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'Questrial',
+                      color: Color(0xFF6B4423),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Message
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'Questrial',
+                      color: Color(0xFF6B4423),
+                      fontSize: 16,
+                      height: 1.4,
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  // OK Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6B4423),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      child: const Text(
+                        'OK',
+                        style: TextStyle(
+                          fontFamily: 'Questrial',
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+                ],
               ),
             ),
-            child: const Text(
-              'OK',
-              style: TextStyle(
-                fontFamily: 'Questrial',
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ),
-      ],
-      actionsAlignment: MainAxisAlignment.center,
-    ),
+          );
+        },
+      );
+    },
   );
 }
 
 
-
 void handleNext() {
+
+const int petNameMaxLength = 12;
+
+  // Slide 3 → Pet selection check
   if (currentSlide == 3 && selectedPet.isEmpty) {
-    showStyledPopup('Please select a pet before continuing');
+    showStyledPopup(
+      context: context,
+      title: "Pet Not Selected",
+      message: "Please choose a pet before continuing.",
+    );
     return;
   }
-  if (currentSlide == 4 && petName.trim().isEmpty) {
-    showStyledPopup('Please enter a name for your pet');
-    return;
+
+  // Slide 4 → Pet name validation
+  if (currentSlide == 4) {
+    if (petName.trim().isEmpty) {
+      showStyledPopup(
+        context: context,
+        title: "Pet Name Empty",
+        message: "Please enter a name for your pet before continuing.",
+      );
+      return;
+    }
+
+    if (petName.trim().length > petNameMaxLength) {
+      showStyledPopup(
+        context: context,
+        title: "Name Too Long",
+        message:
+            "Your pet's name is too long. Please limit it to $petNameMaxLength characters.",
+      );
+      return;
+    }
   }
+
+  // Slide 5 → Display name validation
   if (currentSlide == 5) {
     if (displayName.trim().isEmpty) {
-      showStyledPopup('Please enter your display name');
+      showStyledPopup(
+        context: context,
+        title: "Display Name Empty",
+        message:
+            "Please enter a display name before continuing.",
+      );
       return;
     }
-    if (monthlyAllowance.trim().isEmpty) {
-      showStyledPopup('Please enter your monthly allowance');
-      return;
-    }
+
   }
 
+  // Continue to next slide
   if (currentSlide < 5) {
     setState(() {
       currentSlide++;
@@ -116,112 +188,174 @@ void handleNext() {
 }
 
 
-
   Future<void> handleFinish() async {
+
+    const int displayNameMaxLength = 12;
+
+      if (displayName.trim().length > displayNameMaxLength) {
+      showStyledPopup(
+        context: context,
+        title: "Name Too Long",
+        message:
+            "Your display name is too long. Please limit it to $displayNameMaxLength characters.",
+      );
+      return;
+    }
+
             if (displayName.trim().isEmpty) {
-          showStyledPopup('Please enter your display name before continuing.');
+          showStyledPopup(
+  context: context,
+  title: "Display Name Empty",
+  message: "Please enter your display name.",
+);
           return;
         }
 
         if (monthlyAllowance.trim().isEmpty) {
-          showStyledPopup('Please enter your monthly allowance before continuing.');
+          showStyledPopup(
+  context: context,
+  title: "Monthly Allowance Empty",
+  message: "Please enter your monthly allowance.",
+);;
           return;
         }
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFFF5E6D3),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+showDialog(
+  context: context,
+  builder: (context) => LayoutBuilder(
+    builder: (context, constraints) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: constraints.maxWidth * 0.9, // Make popup wide
+          minWidth: constraints.maxWidth * 0.9,
         ),
-        title: const Text(
-          'Confirm Your Choices',
-          style: TextStyle(
-            fontFamily: 'Questrial',
-            color: Color(0xFF6B4423),
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
+        child: AlertDialog(
+          backgroundColor: const Color(0xFFF5E6D3),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Color(0xFF6B4423), width: 3),
           ),
-          textAlign: TextAlign.center,
-        ),
-        content: const Text(
-          'Are you sure of your pet choice and pet name? They cannot be changed until you further progress in game.',
-          style: TextStyle(
-            fontFamily: 'Questrial',
-            color: Color(0xFF6B4423),
-            fontSize: 16,
-            height: 1.5,
+
+          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
+
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ⭐ LOGO ON TOP
+              Image.asset(
+                "assets/images/logo.png",
+                height: 80,
+              ),
+              const SizedBox(height: 10),
+
+              // ⭐ TITLE
+              const Text(
+                'Confirm Your Choices',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Questrial',
+                  color: Color(0xFF6B4423),
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // ⭐ MESSAGE
+              const Text(
+                'Are you sure of your pet choice and pet name? They cannot be changed until you further progress in game.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Questrial',
+                  color: Color(0xFF6B4423),
+                  fontSize: 16,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
           ),
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
-                fontFamily: 'Questrial',
-                color: Color(0xFF8B6443),
-                fontSize: 16,
+
+          actionsAlignment: MainAxisAlignment.center,
+          actionsPadding: const EdgeInsets.only(bottom: 15),
+
+          actions: [
+            // ❌ CANCEL (outlined)
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFF5E6D3),
+                foregroundColor: const Color(0xFF6B4423),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                  side: const BorderSide(color: Color(0xFF6B4423), width: 2),
+                ),
+              ),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  fontFamily: 'Questrial',
+                  fontSize: 16,
+                ),
               ),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              // ✅ Save tutorial completion and user data to SharedPreferences
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('tutorial_completed', true);
-              if (selectedPet.isNotEmpty) await prefs.setString('selected_pet', selectedPet);
-              if (petName.isNotEmpty) await prefs.setString('pet_name', petName);
-              if (displayName.isNotEmpty) await prefs.setString('display_name', displayName);
-              await prefs.setString('user_type', userType);
-              if (monthlyAllowance.isNotEmpty) await prefs.setString('monthly_allowance', monthlyAllowance);
 
-              // ✅ Update Supabase users table
-              try {
-                final user = Supabase.instance.client.auth.currentUser;
-                if (user != null) {
-                  await Supabase.instance.client
-                      .from('users')
-                      .update({'tutorial_completed': true})
-                      .eq('id', user.id);
+            // ✅ CONFIRM (solid brown)
+            ElevatedButton(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('tutorial_completed', true);
+                if (selectedPet.isNotEmpty) await prefs.setString('selected_pet', selectedPet);
+                if (petName.isNotEmpty) await prefs.setString('pet_name', petName);
+                if (displayName.isNotEmpty) await prefs.setString('display_name', displayName);
+                await prefs.setString('user_type', userType);
+                if (monthlyAllowance.isNotEmpty) {
+                  await prefs.setString('monthly_allowance', monthlyAllowance);
                 }
-              } catch (e) {
-                debugPrint('Error updating Supabase tutorial_completed: $e');
-              }
 
-              if (!mounted) return;
+                try {
+                  final user = Supabase.instance.client.auth.currentUser;
+                  if (user != null) {
+                    await Supabase.instance.client
+                        .from('users')
+                        .update({'tutorial_completed': true})
+                        .eq('id', user.id);
+                  }
+                } catch (e) {
+                  debugPrint('Error updating Supabase tutorial_completed: $e');
+                }
 
-              // ✅ Navigate to dashboard
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const DashboardPage()),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6B4423),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                if (!context.mounted) return;
+
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const DashboardPage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6B4423),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+              ),
+              child: const Text(
+                'Confirm',
+                style: TextStyle(
+                  fontFamily: 'Questrial',
+                  fontSize: 16,
+                ),
               ),
             ),
-            child: const Text(
-              'Confirm',
-              style: TextStyle(
-                fontFamily: 'Questrial',
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ],
-        actionsAlignment: MainAxisAlignment.center,
-      ),
-    );
+          ],
+        ),
+      );
+    },
+  ),
+);
   }
 
   @override
@@ -350,13 +484,13 @@ void handleNext() {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 30),
         Image.asset(
           'assets/images/logo.png',
           width: 275,
           fit: BoxFit.contain,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 30),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 32),
           child: Text(
