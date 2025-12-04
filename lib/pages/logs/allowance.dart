@@ -166,17 +166,17 @@ class _LogEntryPageState extends State<LogEntryPage> {
               CommonHeader(
                 goToDashboard: true,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const Text(
                           "What would you like to log?",
+                          textAlign: TextAlign.left,
                           style: TextStyle(
                             fontFamily: "Modak",
                             fontSize: 25,
-                            color: Color(0xFFFDE6D0),
+                            color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -222,7 +222,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
                             ),
                             Image.asset(
                               "assets/images/dog.png",
-                              height: 80,
+                              height: 120,
                               fit: BoxFit.contain,
                             ),
                           ],
@@ -244,7 +244,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
                       "Amount",
                       style: TextStyle(
                         fontFamily: "Modak",
-                        fontSize: 18,
+                        fontSize: 21,
                         color: Color(0xFF6B3E1D),
                       ),
                     ),
@@ -267,7 +267,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
                             style: TextStyle(
                               color: Color(0xFF6B3E1D),
                               fontSize: 20,
-                              fontFamily: "PixelifySans-VariableFont_wght",
+                              fontFamily: "Questrial",
                             ),
                           ),
                           const SizedBox(width: 6),
