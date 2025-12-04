@@ -79,6 +79,7 @@ flutter:
     - assets/images/user.png
     - assets/images/sad_dog.png
     - assets/audio/background_music.mp3
+    - assets/images/evolution_token.png
 
   fonts:
     - family: Questrial
