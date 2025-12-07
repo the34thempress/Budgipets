@@ -21,7 +21,7 @@ class ExpenseRewardPopup extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: const Color(0xFF5C3D2E),
+          color: const Color(0xFF6A3A0A),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(

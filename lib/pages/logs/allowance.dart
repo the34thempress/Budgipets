@@ -308,72 +308,68 @@ Future<void> _submitLog() async {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              CommonHeader(
+CommonHeader(
                 goToDashboard: true,
-                child: Column(
+                child: Row(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "What would you like to log?",
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                            fontFamily: "Modak",
-                            fontSize: 25,
-                            color: Colors.white,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "What would you like to log?",
+                            style: TextStyle(
+                              fontFamily: "Modak",
+                              fontSize: 30,
+                              color: Colors.white,
+                              height: 1.0, 
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.5,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFDE6D0),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                child: DropdownButton<String>(
-                                  value: controller.selectedType,
-                                  dropdownColor: const Color(0xFFFDE6D0),
-                                  isExpanded: true,
-                                  underline: const SizedBox(),
-                                  icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF6B3E1D)),
-                                  items: ['Expense', 'Income']
-                                      .map((type) => DropdownMenuItem(
-                                            value: type,
-                                            child: Text(
-                                              type,
-                                              style: const TextStyle(
-                                                color: Color(0xFF6B3E1D),
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: "Questrial",
-                                              ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.5,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFDE6D0),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              child: DropdownButton<String>(
+                                value: controller.selectedType,
+                                dropdownColor: const Color(0xFFFDE6D0),
+                                isExpanded: true,
+                                underline: const SizedBox(),
+                                icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF6B3E1D)),
+                                items: ['Expense', 'Income']
+                                    .map((type) => DropdownMenuItem(
+                                          value: type,
+                                          child: Text(
+                                            type,
+                                            style: const TextStyle(
+                                              color: Color(0xFF6B3E1D),
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: "Questrial",
                                             ),
-                                          ))
-                                      .toList(),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      controller.selectedType = value!;
-                                      controller.selectedCategory = '';
-                                    });
-                                  },
-                                ),
+                                          ),
+                                        ))
+                                    .toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    controller.selectedType = value!;
+                                    controller.selectedCategory = '';
+                                  });
+                                },
                               ),
                             ),
-                            Image.asset(
-                              "assets/images/dog.png",
-                              height: 120,
-                              fit: BoxFit.contain,
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
+                    Image.asset(
+                      'assets/images/dog.png',
+                      width: 130,
+                      height: 130,
+                    )
                   ],
                 ),
               ),
@@ -389,7 +385,7 @@ Future<void> _submitLog() async {
                       "Amount",
                       style: TextStyle(
                         fontFamily: "Modak",
-                        fontSize: 21,
+                        fontSize: 23,
                         color: Color(0xFF6B3E1D),
                       ),
                     ),
@@ -421,7 +417,7 @@ Future<void> _submitLog() async {
                               controller: controller.amountController,
                               keyboardType: TextInputType.number,
                               style: const TextStyle(
-                                fontFamily: "PixelifySans-VariableFont_wght",
+                                fontFamily: "Questrial",
                                 fontSize: 15,
                                 color: Color(0xFF6B3E1D),
                               ),
@@ -430,7 +426,7 @@ Future<void> _submitLog() async {
                                 hintText: "Enter Amount",
                                 hintStyle: TextStyle(
                                   color: Colors.black38,
-                                  fontFamily: "PixelifySans-VariableFont_wght",
+                                  fontFamily: "Questrial",
                                 ),
                                 border: InputBorder.none,
                                 isDense: true,

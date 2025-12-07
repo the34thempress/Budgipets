@@ -170,21 +170,21 @@ class _LogsPageState extends State<LogsPage> {
   final expenseMap = <String, Color>{
     'Medical': const Color(0xFF720607),
     'Car': const Color(0xFF073598),
-    'Food': const Color(0xFFC57000),
+    'Food': const Color.fromARGB(255, 217, 124, 2),
     'Travel': const Color(0xFF390488),
     'Recreation': const Color(0xFFFEB65B),
     'Pets': const Color(0xFFCD6082),
-    'Bills': Color.fromARGB(255, 71, 166, 114),
+    'Bills': Color.fromARGB(255, 65, 152, 104),
     'Other': const Color(0xFF582901),
   };
   
   // Income categories
   final incomeMap = <String, Color>{
-    'Salary': Colors.green,
-    'Loan': Colors.teal,
-    'Sold Item': Colors.blue,
-    'Donation': Colors.purple,
-    'Other': Colors.brown,
+    'Salary': Color.fromARGB(255, 67, 156, 70),
+    'Loan': Color.fromARGB(255, 1, 123, 111),
+    'Sold Item': Color.fromARGB(255, 22, 105, 173),
+    'Donation': Color.fromARGB(255, 121, 31, 137),
+    'Other': Color.fromARGB(255, 86, 59, 49),
   };
   
   // Check if it's an income or expense
@@ -265,7 +265,7 @@ class _LogsPageState extends State<LogsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Your Logs", style: TextStyle(fontFamily: 'Modak', fontSize: 50, color: Colors.white)),
+                      Text("Your Logs", style: TextStyle(fontFamily: 'Modak', fontSize: 45, color: Colors.white)),
                       Text(
                         "Here you'll find all your logged\nexpenses and income!",
                         style: bodyStyle(14),
