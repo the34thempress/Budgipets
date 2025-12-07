@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
+
 class LogEntryController {
   final TextEditingController noteController = TextEditingController();
-
   TextEditingController amountController = TextEditingController();
   
   String selectedType = 'Expense';
   String selectedCategory = '';
 
-//expenses tags category
+  // Temporary custom tag (replaces "Other" temporarily)
+  Map<String, dynamic>? temporaryCustomTag;
+
+  //expenses tags category
   final List<Map<String, dynamic>> expenseCategories = [
     {'name': 'Medical', 'color': Color(0xFF720607), 'icon': Icons.healing},
     {'name': 'Car', 'color': Color(0xFF073598), 'icon': Icons.directions_car},
@@ -20,7 +23,7 @@ class LogEntryController {
     {'name': 'Other', 'color': Color(0xFF582901), 'icon': Icons.category},
   ];
 
-//income tags category
+  //income tags category
   final List<Map<String, dynamic>> incomeCategories = [
     {'name': 'Salary', 'color': const Color.fromARGB(255, 67, 156, 70), 'icon': Icons.attach_money},
     {'name': 'Loan', 'color': const Color.fromARGB(255, 1, 123, 111), 'icon': Icons.handshake},
@@ -30,6 +33,23 @@ class LogEntryController {
   ];
 
   List<Map<String, dynamic>> getDisplayedCategories() {
-    return selectedType == 'Expense' ? expenseCategories : incomeCategories;
+    final baseCategories = selectedType == 'Expense' ? expenseCategories : incomeCategories;
+    
+    // If there's a temporary custom tag, replace "Other" with it
+    if (temporaryCustomTag != null) {
+      return baseCategories.map((cat) {
+        if (cat['name'] == 'Other') {
+          return temporaryCustomTag!;
+        }
+        return cat;
+      }).toList();
+    }
+    
+    return baseCategories;
+  }
+
+  // Clear temporary custom tag (call this after successful log)
+  void clearTemporaryTag() {
+    temporaryCustomTag = null;
   }
 }

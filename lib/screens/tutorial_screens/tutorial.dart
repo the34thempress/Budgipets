@@ -602,8 +602,8 @@ Widget _buildChecklistSlide() {
       final screenHeight = constraints.maxHeight;
       final isLargeScreen = screenHeight > 700;
       
-      final titleSpacing = isLargeScreen ? 40.0 : screenHeight * 0.08;
-      final itemSpacing = isLargeScreen ? 60.0 : screenHeight * 0.06;
+      final titleSpacing = isLargeScreen ? 35.0 : screenHeight * 0.08;
+      final itemSpacing = isLargeScreen ? 40.0 : screenHeight * 0.06;
       
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -626,7 +626,7 @@ Widget _buildChecklistSlide() {
               child: _buildChecklistItem(
                 'Step 1:',
                 'Choose Your Pet',
-                'Your brand new budget accountability buddy! Choose wisely as this pet will accompany you on your budgeting journey.',
+                'Select and name a pet companion that will join you on your budgeting adventure!',
                 'assets/images/dog_egg.png',
               ),
             ),
@@ -635,7 +635,7 @@ Widget _buildChecklistSlide() {
               child: _buildChecklistItem(
                 'Step 2:',
                 'Set Your Budget',
-                'Your allowance will determine how much you can spend each month. We will help you keep track!',
+                'With your monthly allowance set, you can start logging your expenses and incomes to keep track of your budget!',
                 'assets/images/puppy.png',
               ),
             ),
@@ -652,7 +652,7 @@ Widget _buildChecklist2Slide() {
       final screenHeight = constraints.maxHeight;
       final isLargeScreen = screenHeight > 700;
       
-      final titleSpacing = isLargeScreen ? 40.0 : screenHeight * 0.08;
+      final titleSpacing = isLargeScreen ? 35.0 : screenHeight * 0.08;
       final itemSpacing = isLargeScreen ? 40.0 : screenHeight * 0.06;
       
       return Padding(
@@ -726,9 +726,10 @@ Widget _buildChecklist2Slide() {
                 title,
                 style: const TextStyle(
                   fontSize: 26,
-                  fontWeight: FontWeight.w400,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF6B4423),
                   fontFamily: 'Questrial',
+                  height: 1.2,
                 ),
               ),
             ),
@@ -739,7 +740,7 @@ Widget _buildChecklist2Slide() {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(width: 20),
-            Image.asset(imagePath, width: 100, height: 100),
+            Image.asset(imagePath, width: 100, height: 107),
             const SizedBox(width: 20),
             Expanded(
               child: Padding(
@@ -747,10 +748,9 @@ Widget _buildChecklist2Slide() {
                 child: Text(
                   description,
                   style: const TextStyle(
-                    fontSize: 17,
+                    fontSize: 16,
                     color: Color(0xFF6B4423),
                     fontFamily: 'Questrial',
-                    height: 1.5,
                   ),
                 ),
               ),
@@ -774,7 +774,7 @@ Widget _buildChecklist2Slide() {
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 20),
         _buildPetOption(
           petType: 'dog',
           name: 'Dog',
@@ -823,7 +823,7 @@ Widget _buildChecklist2Slide() {
                 ),
               ] : null,
             ),
-            child: Image.asset(imagePath, width: 125, height: 125),
+            child: Image.asset(imagePath, width: 115, height: 115),
           ),
           const SizedBox(height: 5),
           // ✅ Pet name - easily customizable
@@ -836,17 +836,16 @@ Widget _buildChecklist2Slide() {
               fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 2),
           // ✅ Pet description - easily customizable
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 1),
             child: Text(
               description,
               style: const TextStyle(
-                fontSize: 17,
+                fontSize: 15,
                 color: Color(0xFF6B4423),
                 fontFamily: 'Questrial',
-                height: 1.5,
               ),
               textAlign: TextAlign.center,
             ),
