@@ -9,8 +9,14 @@ class NoteInput extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
+      style: const TextStyle(
+        fontFamily: 'Questrial',
+      ),
       decoration: InputDecoration(
         hintText: "(optional)",
+        hintStyle: const TextStyle(
+          fontFamily: 'Questrial',
+        ),
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.all(10),

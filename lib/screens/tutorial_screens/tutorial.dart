@@ -216,7 +216,37 @@ const int petNameMaxLength = 12;
   context: context,
   title: "Monthly Allowance Empty",
   message: "Please enter your monthly allowance.",
-);;
+);
+
+if (monthlyAllowance.trim().isEmpty) {
+  showStyledPopup(
+    context: context,
+    title: "Monthly Allowance Empty",
+    message: "Please enter your monthly allowance.",
+  );
+  return;
+}
+
+// Check if the input contains only numbers (and optional decimal point)
+if (!RegExp(r'^\d+\.?\d*$').hasMatch(monthlyAllowance.trim())) {
+  showStyledPopup(
+    context: context,
+    title: "Invalid Input",
+    message: "Please enter a valid number for your monthly allowance.",
+  );
+  return;
+}
+
+// Optional: Check if the value is greater than 0
+double? allowanceValue = double.tryParse(monthlyAllowance.trim());
+if (allowanceValue == null || allowanceValue <= 0) {
+  showStyledPopup(
+    context: context,
+    title: "Invalid Amount",
+    message: "Please enter an amount greater than 0.",
+  );
+  return;
+}
           return;
         }
 showDialog(
@@ -358,71 +388,129 @@ showDialog(
 );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFADEC6),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: Center(
-                  child: SingleChildScrollView(child: _buildSlideContent()),
-                ),
+  // Replace the existing build method's button section with this:
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFFADEC6),
+    body: SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+        child: Column(
+          children: [
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(child: _buildSlideContent()),
               ),
-              const SizedBox(height: 40),
-              Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: currentSlide == 5 ? handleFinish : handleNext,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6B4423),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 18),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                      elevation: 8,
-                      shadowColor: Colors.black.withAlpha(77),
-                    ),
-                    child: Text(
-                      currentSlide == 5 ? 'Finish' : 'Next',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: 'Questrial',
+            ),
+            const SizedBox(height: 40),
+            Column(
+              children: [
+                // Progress dots on top
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(6, (index) {
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 6),
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: index == currentSlide
+                            ? const Color(0xFF6B4423)
+                            : Colors.transparent,
+                        border: Border.all(color: const Color(0xFF6B4423), width: 2),
+                      ),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 28),
+                // Back and Next buttons row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Back button (only show if not on first slide)
+                    if (currentSlide > 0)
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            currentSlide--;
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFF5E6D3),
+                          foregroundColor: const Color(0xFF6B4423),
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50),
+                            side: const BorderSide(
+                              color: Color(0xFF6B4423),
+                              width: 3,
+                            ),
+                          ),
+                          elevation: 8,
+                          shadowColor: Colors.black.withAlpha(77),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.arrow_back, size: 24),
+                            SizedBox(width: 8),
+                            Text(
+                              'Back',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w400,
+                                fontFamily: 'Questrial',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    
+                    // Spacer between buttons
+                    if (currentSlide > 0) const SizedBox(width: 20),
+                    
+                    // Next/Finish button
+                    ElevatedButton(
+                      onPressed: currentSlide == 5 ? handleFinish : handleNext,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6B4423),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                        elevation: 8,
+                        shadowColor: Colors.black.withAlpha(77),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            currentSlide == 5 ? 'Finish' : 'Next',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w400,
+                              fontFamily: 'Questrial',
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward, size: 24),
+                        ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 28),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(6, (index) {
-                      return GestureDetector(
-                        onTap: () {}, // disabled skipping
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 6),
-                          width: 14,
-                          height: 14,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: index == currentSlide
-                                ? const Color(0xFF6B4423)
-                                : Colors.transparent,
-                            border: Border.all(color: const Color(0xFF6B4423), width: 2),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSlideContent() {
     switch (currentSlide) {
@@ -514,7 +602,7 @@ Widget _buildChecklistSlide() {
       final screenHeight = constraints.maxHeight;
       final isLargeScreen = screenHeight > 700;
       
-      final titleSpacing = isLargeScreen ? 60.0 : screenHeight * 0.08;
+      final titleSpacing = isLargeScreen ? 40.0 : screenHeight * 0.08;
       final itemSpacing = isLargeScreen ? 60.0 : screenHeight * 0.06;
       
       return Padding(
@@ -529,7 +617,7 @@ Widget _buildChecklistSlide() {
                 fontSize: isLargeScreen ? 38 : screenHeight * 0.05,
                 color: const Color(0xFF6B4423),
                 fontFamily: 'Questrial',
-                fontWeight: FontWeight.w400,
+                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
@@ -564,8 +652,8 @@ Widget _buildChecklist2Slide() {
       final screenHeight = constraints.maxHeight;
       final isLargeScreen = screenHeight > 700;
       
-      final titleSpacing = isLargeScreen ? 60.0 : screenHeight * 0.08;
-      final itemSpacing = isLargeScreen ? 60.0 : screenHeight * 0.06;
+      final titleSpacing = isLargeScreen ? 40.0 : screenHeight * 0.08;
+      final itemSpacing = isLargeScreen ? 40.0 : screenHeight * 0.06;
       
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -579,7 +667,7 @@ Widget _buildChecklist2Slide() {
                 fontSize: isLargeScreen ? 38 : screenHeight * 0.05,
                 color: const Color(0xFF6B4423),
                 fontFamily: 'Questrial',
-                fontWeight: FontWeight.w400,
+                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
@@ -597,7 +685,7 @@ Widget _buildChecklist2Slide() {
               child: _buildChecklistItem(
                 'Step 4:',
                 'Go Shopping!',
-                'As you continue to log your transactions, you will have enough currency to buy accessories. Personalize your Budgipet while being financially responsible!',
+                'Buy accessories to dress up your pet and make them unique to you! Show off your style as you budget better!',
                 'assets/images/bow.png',
               ),
             ),
@@ -646,20 +734,20 @@ Widget _buildChecklist2Slide() {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(width: 16),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(width: 16),
+            const SizedBox(width: 20),
             Image.asset(imagePath, width: 100, height: 100),
-            const SizedBox(width: 16),
+            const SizedBox(width: 20),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
                   description,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 17,
                     color: Color(0xFF6B4423),
                     fontFamily: 'Questrial',
                     height: 1.5,
@@ -682,30 +770,34 @@ Widget _buildChecklist2Slide() {
             fontSize: 32,
             color: Color(0xFF6B4423),
             fontFamily: 'Questrial',
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w600,
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 30),
         _buildPetOption(
-          'dog',
-          'Dog',
-          'Playful, outgoing, super friendly. Everyone\'s best friend and always down for an adventure.',
-          'assets/images/dog.png',
+          petType: 'dog',
+          name: 'Dog',
+          description: 'Energetic, loyal, outgoing, loves \nadventures and playtime',
+          imagePath: 'assets/images/dog.png',
         ),
-        const SizedBox(height: 10 ),
+        const SizedBox(height: 20),
         _buildPetOption(
-          'cat',
-          'Cat',
-          'Sophisticated, nonchalant, a bit introverted, loves books and quiet nights',
-          'assets/images/cat.png',
+          petType: 'cat',
+          name: 'Cat',
+          description: 'Independent, curious, affectionate, \nenjoys lounging and exploring',
+          imagePath: 'assets/images/cat.png',
         ),
       ],
     );
   }
 
-  Widget _buildPetOption(
-      String petType, String name, String description, String imagePath) {
+  Widget _buildPetOption({
+    required String petType,
+    required String name,
+    required String description,
+    required String imagePath,
+  }) {
     bool isSelected = selectedPet == petType;
     return GestureDetector(
       onTap: () => setState(() => selectedPet = petType),
@@ -722,10 +814,9 @@ Widget _buildChecklist2Slide() {
                 width: 4,
               ),
               borderRadius: BorderRadius.circular(20),
-              // ✅ Added shadow for selected pet
               boxShadow: isSelected ? [
                 BoxShadow(
-                  color: const Color(0xFF6B4423).withAlpha(102), // 40% opacity
+                  color: const Color(0xFF6B4423).withAlpha(102),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                   spreadRadius: 2,
@@ -735,16 +826,18 @@ Widget _buildChecklist2Slide() {
             child: Image.asset(imagePath, width: 125, height: 125),
           ),
           const SizedBox(height: 5),
+          // ✅ Pet name - easily customizable
           Text(
             name,
             style: TextStyle(
-              fontSize: 26,
+              fontSize: 27,
               color: const Color(0xFF6B4423),
               fontFamily: 'Questrial',
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, // ✅ Bold when selected
+              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
             ),
           ),
           const SizedBox(height: 5),
+          // ✅ Pet description - easily customizable
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Text(
@@ -773,7 +866,7 @@ Widget _buildChecklist2Slide() {
             fontSize: 38,
             color: Color(0xFF6B4423),
             fontFamily: 'Questrial',
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w600,
           ),
           textAlign: TextAlign.center,
         ),
@@ -867,7 +960,7 @@ Widget _buildChecklist2Slide() {
             fontSize: 38,
             color: Color(0xFF6B4423),
             fontFamily: 'Questrial',
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w600,
           ),
           textAlign: TextAlign.center,
         ),
