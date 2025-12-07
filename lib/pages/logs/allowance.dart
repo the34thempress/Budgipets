@@ -5,7 +5,8 @@ import 'package:budgipets/widgets/note_input.dart';
 import 'package:budgipets/widgets/log_button.dart';
 import 'package:budgipets/widgets/main_page_nav_header.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:budgipets/widgets/reward_popup.dart'; // Add this line
+import 'package:budgipets/widgets/reward_popup.dart';
+import 'package:budgipets/widgets/custom_tag_popup.dart'; 
 
 class LogEntryPage extends StatefulWidget {
   const LogEntryPage({super.key});
@@ -17,6 +18,12 @@ class LogEntryPage extends StatefulWidget {
 class _LogEntryPageState extends State<LogEntryPage> {
   final controller = LogEntryController();
   bool _isSubmitting = false;
+
+  @override
+void initState() {
+  super.initState();
+  // Load custom tags when page initializes
+}
 
   DateTime _monthStart(DateTime dt) => DateTime(dt.year, dt.month, 1);
   String _msStr(DateTime ms) =>
@@ -150,8 +157,10 @@ Future<void> _submitLog() async {
         .eq('user_id', user.id)
         .eq('month_start', monthStr);
 
-    controller.amountController.clear();
-    controller.noteController.clear();
+controller.amountController.clear();
+controller.noteController.clear();
+controller.clearTemporaryTag(); // Add this line
+setState(() {});
 
     if (!mounted) return;
 
@@ -449,11 +458,31 @@ CommonHeader(
                     ),
                     const SizedBox(height: 8),
 
-                    CategoryGrid(
+                   CategoryGrid(
                       categories: categories,
                       selectedCategory: controller.selectedCategory,
                       onSelect: (cat) {
                         setState(() => controller.selectedCategory = cat);
+                      },
+                      onOtherTapped: () {
+                        // Show custom tag popup when "Other" is pressed
+                        showDialog(
+                          context: context,
+                          builder: (context) => CustomTagPopup(
+                            onTagCreated: (name, color, icon) {
+                              setState(() {
+                                // Create temporary custom tag that replaces "Other"
+                                controller.temporaryCustomTag = {
+                                  'name': name,
+                                  'color': color,
+                                  'icon': icon,
+                                };
+                                // Set it as selected
+                                controller.selectedCategory = name;
+                              });
+                            },
+                          ),
+                        );
                       },
                     ),
                     const SizedBox(height: 20),
