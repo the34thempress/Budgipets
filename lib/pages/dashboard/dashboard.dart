@@ -1,5 +1,4 @@
 import 'package:budgipets/pages/pet/pet_management.dart';
-import 'package:budgipets/pages/profile/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:budgipets/pages/logs/allowance.dart';
@@ -9,6 +8,7 @@ import 'package:budgipets/pages/logs/log_history.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:budgipets/pages/dashboard/set_budget_dialog.dart';
 import 'package:budgipets/controllers/audio_manager.dart';
+import 'package:budgipets/widgets/profilecard.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -369,72 +369,85 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  Widget _buildTopBarEmptyWithAvatar() {
-    return Container(
-      color: const Color(0xFF6A3E1C),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // 👤 AVATAR ON THE LEFT
-          GestureDetector(
-            onTap: () async {
-              if (!mounted) return;
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProfilePage()),
-              );
-              // refresh coins in case profile changed
-              if (!mounted) return;
-              await _loadCoins();
-            },
-            child: const CircleAvatar(
-              radius: 30,
-              backgroundImage: AssetImage("assets/images/user.png"),
-            ),
-          ),
+Widget _buildTopBarEmptyWithAvatar() {
+  return Container(
+    color: const Color(0xFF6A3E1C),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // 👤 AVATAR ON THE LEFT
+        GestureDetector(
+          onTap: () async {
+            if (!mounted) return;
 
-          // 🪙 COINS WITH CONTAINER ON THE RIGHT
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF3E1D01), width: 1),
-            ),
-            child: Row(
-              children: [
-                Image.asset(
-                  'assets/images/coin.png',
-                  width: 26,
-                  height: 26,
-                ),
-                const SizedBox(width: 4),
-                _loadingCoins
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(
-                        '$_coins',
-                        style: const TextStyle(
-                          fontFamily: 'Questrial',
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-              ],
-            ),
+            await showDialog(
+              context: context,
+              barrierDismissible: true,
+              builder: (context) {
+                return Dialog(
+                  backgroundColor: Colors.transparent,
+                  insetPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 24,
+                  ),
+                  child: const BudgetProfileCard(),  // <-- FIXED
+                );
+              },
+            );
+
+            // Refresh coins when closed
+            if (!mounted) return;
+            await _loadCoins();
+          },
+          child: const CircleAvatar(
+            radius: 30,
+            backgroundImage: AssetImage("assets/images/user.png"),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+
+        // 🪙 COINS WITH CONTAINER ON THE RIGHT
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF3E1D01), width: 1),
+          ),
+          child: Row(
+            children: [
+              Image.asset(
+                'assets/images/coin.png',
+                width: 26,
+                height: 26,
+              ),
+              const SizedBox(width: 4),
+              _loadingCoins
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(
+                      '$_coins',
+                      style: const TextStyle(
+                        fontFamily: 'Questrial',
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildSummaryTitle() {
     return Padding(
