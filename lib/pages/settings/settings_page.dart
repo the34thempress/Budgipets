@@ -6,6 +6,7 @@ import 'package:budgipets/pages/dashboard/dashboard.dart';
 import 'package:budgipets/pages/auth/login.dart';
 import 'package:budgipets/pages/settings/change_email.dart' hide Padding;
 import 'package:budgipets/pages/settings/change_password.dart';
+import 'package:budgipets/pages/settings/delete_account.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -17,10 +18,13 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final AudioService _audioManager = AudioService();
 
+  late bool _musicOn;
+  bool _notificationsOn = true;
+
   @override
   void initState() {
     super.initState();
-    setState(() {});
+    _musicOn = _audioManager.isPlaying;
   }
 
   @override
@@ -29,7 +33,6 @@ class _SettingsPageState extends State<SettingsPage> {
       backgroundColor: const Color(0xFFF4D6C1),
       body: Column(
         children: [
-          //header
           CommonHeader(
             onBack: () {
               Navigator.pushReplacement(
@@ -45,7 +48,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   style: TextStyle(
                     fontFamily: "Modak",
                     fontSize: 40,
-                    color: Colors.white
+                    color: Colors.white,
                   ),
                 )
               ],
@@ -54,20 +57,36 @@ class _SettingsPageState extends State<SettingsPage> {
 
           const SizedBox(height: 30),
 
-          _settingsButton(context, "Change Email"),
-          _settingsButton(context, "Change Password"),
           _settingsButton(context, "Change Profile Picture"),
 
-          _settingsButton(
-            context,
-            "Music : ${_audioManager.isPlaying ? "ON" : "OFF"}",
-            onTap: () async {
+          _settingsButton(context, "Change Email"),
+          _settingsButton(context, "Change Password"),
+
+          const SizedBox(height: 8),
+
+          _settingsToggleRow(
+            label: "Music",
+            value: _musicOn,
+            onChanged: (val) async {
               await _audioManager.toggleMusic();
-              setState(() {});
+              setState(() {
+                _musicOn = _audioManager.isPlaying;
+              });
             },
           ),
 
-          _settingsButton(context, "Notifications : ON"),
+          _settingsToggleRow(
+            label: "Notifications",
+            value: _notificationsOn,
+            onChanged: (val) {
+              setState(() {
+                _notificationsOn = val;
+              });
+              //empty
+            },
+          ),
+
+          const SizedBox(height: 8),
 
           _settingsButton(
             context,
@@ -81,6 +100,35 @@ class _SettingsPageState extends State<SettingsPage> {
                 (route) => false,
               );
             },
+          ),
+
+          const SizedBox(height: 16),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[700],
+                minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DeleteAccountPage()),
+                );
+              },
+              child: const Text(
+                "Delete Account",
+                style: TextStyle(
+                  fontFamily: "Questrial",
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -129,6 +177,45 @@ class _SettingsPageState extends State<SettingsPage> {
             color: Colors.white,
             fontSize: 16,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _settingsToggleRow({
+    required String label,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF5C2E14),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontFamily: "Questrial",
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+
+            Switch.adaptive(
+              value: value,
+              onChanged: onChanged,
+              activeColor: Colors.white,
+              activeTrackColor: Colors.greenAccent,
+            ),
+          ],
         ),
       ),
     );
