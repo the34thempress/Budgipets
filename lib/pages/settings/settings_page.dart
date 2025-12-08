@@ -7,6 +7,7 @@ import 'package:budgipets/pages/auth/login.dart';
 import 'package:budgipets/pages/settings/change_email.dart' hide Padding;
 import 'package:budgipets/pages/settings/change_password.dart';
 import 'package:budgipets/pages/settings/delete_account.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -89,18 +90,30 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 8),
 
           _settingsButton(
-            context,
-            "Log out",
-            onTap: () async {
-              // await Supabase.instance.client.auth.signOut(); LATERRRRRRR
-              if (!mounted) return;
+          context,
+          "Log out",
+          onTap: () async {
+            if (!mounted) return;
 
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-                (route) => false,
+            setState(() {}); // optional: keep UI update consistent; remove if you don't want
+
+            try {
+              // sign out from Supabase
+              await Supabase.instance.client.auth.signOut();
+            } catch (e) {
+              // show an error but still attempt to navigate to login
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Sign out failed: $e')),
               );
-            },
-          ),
+            }
+
+            // navigate to login and remove previous routes
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+              (route) => false,
+            );
+          },
+        ),
 
           const SizedBox(height: 16),
 
@@ -161,7 +174,7 @@ class _SettingsPageState extends State<SettingsPage> {
               context,
               MaterialPageRoute(builder: (_) => ChangePasswordPage()),
             );
-          } else if (label == "Change Profile Picture") {
+          } else if (label == "Profile") {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ProfilePage()),

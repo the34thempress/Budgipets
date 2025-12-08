@@ -15,21 +15,48 @@ class _ChangeEmailPageState extends State<ChangeEmailPage> {
   final Color darkBrown = const Color(0xFF5C2E14);
   final Color lightBrown = const Color(0xFFF4D6C1);
 
+  // Replaced behavior: show informational popup when Update Email is pressed
   void _updateEmail() {
-    if (_passwordController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter your password!')),
-      );
-      return;
-    }
-    
-    if (_newEmailController.text.trim() == _confirmEmailController.text.trim()) {
-      Navigator.pushReplacementNamed(context, '/login');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Emails do not match!')),
-      );
-    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: lightBrown,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            'Feature Unavailable',
+            style: TextStyle(fontFamily: 'Modak', fontSize: 22, color: darkBrown),
+          ),
+          content: SingleChildScrollView(
+            child: Text(
+              // Slightly tightened punctuation; message retains your content.
+              'This feature is currently unavailable. We are working on it right now. '
+              'If you really need your email changed, please contact:\n\n'
+              'c202301060@iacademy.edu.ph',
+              style: TextStyle(fontFamily: 'Questrial', color: darkBrown),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'OK',
+                style: TextStyle(fontFamily: 'Questrial', color: darkBrown),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _newEmailController.dispose();
+    _confirmEmailController.dispose();
+    super.dispose();
   }
 
   @override
