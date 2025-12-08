@@ -18,59 +18,102 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   bool _passwordVisible = false;
 
 Future<void> showAccountPopup({
-      required BuildContext context,
-      required String title,
-      required String message,
-    }) {
-      return showDialog<void>(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            backgroundColor: const Color(0xFFF5E6D3),
-            shape: RoundedRectangleBorder(
+  required BuildContext context,
+  required String title,
+  required String message,
+}) {
+  return showDialog<void>(
+    context: context,
+    builder: (context) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final dialogWidth = screenWidth - 40; // 20px padding each side
+
+      return Dialog(
+        backgroundColor: Colors.transparent, // makes rounded corners visible
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+        child: SizedBox(
+          width: dialogWidth,
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5E6D3),
               borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+              border: Border.all(color: const Color(0xFF6B4423), width: 3),
             ),
-            title: Text(
-              title,
-              style: const TextStyle(
-                fontFamily: 'Questrial',
-                color: Color(0xFF6B4423),
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            content: Text(
-              message,
-              style: const TextStyle(
-                fontFamily: 'Questrial',
-                color: Color(0xFF6B4423),
-                fontSize: 16,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // LOGO
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 70,
+                  fit: BoxFit.contain,
                 ),
-                child: const Text(
-                  'OK',
-                  style: TextStyle(
+                const SizedBox(height: 16),
+
+                // TITLE
+                Text(
+                  title,
+                  style: const TextStyle(
                     fontFamily: 'Questrial',
-                    color: Color(0xFF8B6443),
+                    color: Color(0xFF6B4423),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+
+                // MESSAGE
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontFamily: 'Questrial',
+                    color: Color(0xFF6B4423),
                     fontSize: 16,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+
+                // FULL-WIDTH BROWN BUTTON
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6B4423),
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'OKAY',
+                      style: TextStyle(
+                        fontFamily: 'Questrial',
+                        color: Color(0xFFFFE8C7),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+                const SizedBox(height: 10),
+              ],
+            
+            ),
+          ),
+        ),
       );
-    }
+    },
+  );
+}
+
+
+
 
 
   Future<void> _signUp() async {
@@ -153,11 +196,11 @@ Future<void> showAccountPopup({
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 80),
 
                 // Logo
-                Image.asset("assets/images/logo.png", height: 200),
-                const SizedBox(height: 10),
+                Image.asset("assets/images/logo.png", height: 130),
+                const SizedBox(height: 20),
 
                 const Text(
                   "Enter Your Details!",

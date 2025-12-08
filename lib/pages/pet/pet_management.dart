@@ -227,7 +227,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
                         children: [
                           // Base pet image
                           Image.asset(
-                              'assets/images/cat.png',  // This will be cat.png or dog.png
+                              'assets/images/dog.png',  // This will be cat.png or dog.png
                               width: 220,
                               fit: BoxFit.contain,
                             ),
@@ -276,7 +276,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
                         style: TextStyle(
                           fontFamily: 'Modak',
                           fontSize: 50,
-                          color: Color(0xFFFDE6D0),
+                          color: Colors.white,
                           height: 1,
                         ),
                       ),

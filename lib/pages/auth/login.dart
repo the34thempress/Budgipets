@@ -65,48 +65,85 @@ Future<void> showLoginPopup({
   return showDialog<void>(
     context: context,
     builder: (context) {
-      return AlertDialog(
-        backgroundColor: const Color(0xFFF5E6D3),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF6B4423), width: 3),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontFamily: 'Questrial',
-            color: Color(0xFF6B4423),
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        content: Text(
-          message,
-          style: const TextStyle(
-            fontFamily: 'Questrial',
-            color: Color(0xFF6B4423),
-            fontSize: 16,
-            height: 1.5,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-            child: const Text(
-              'OK',
-              style: TextStyle(
-                fontFamily: 'Questrial',
-                color: Color(0xFF8B6443),
-                fontSize: 16,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final double maxWidth = constraints.maxWidth - 40;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: AlertDialog(
+                insetPadding: EdgeInsets.zero, // << THE IMPORTANT FIX
+                backgroundColor: const Color(0xFFF5E6D3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+                ),
+                contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
+
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/images/logo.png',
+                      height: 70,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontFamily: 'Questrial',
+                        color: Color(0xFF6B4423),
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      message,
+                      style: const TextStyle(
+                        fontFamily: 'Questrial',
+                        color: Color(0xFF6B4423),
+                        fontSize: 16,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+
+                actionsAlignment: MainAxisAlignment.center,
+                actions: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6B4423),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'OKAY',
+                        style: TextStyle(
+                          fontFamily: 'Questrial',
+                          color: Color(0xFFFFE8C7),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          );
+        },
       );
     },
   );
@@ -200,12 +237,13 @@ Future<void> showLoginPopup({
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Logo
+              const SizedBox(height: 60),
+              // Logo              
               Image.asset(
                 "assets/images/logo.png",
-                height: 200,
+                height: 130,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
 
               // Instruction text
               const Text(

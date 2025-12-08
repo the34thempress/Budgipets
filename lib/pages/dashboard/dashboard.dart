@@ -8,6 +8,7 @@ import 'package:budgipets/pages/settings/settings_page.dart';
 import 'package:budgipets/pages/logs/log_history.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:budgipets/pages/dashboard/set_budget_dialog.dart';
+import 'package:budgipets/controllers/audio_manager.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -16,6 +17,7 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  final AudioService _audioService = AudioService();
   num? _balance;
   num? _goal;
   bool _loading = true;
@@ -47,6 +49,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _loadOrCreateBudget();
+    _audioService.playMusic();
     _loadCoins();
   }
 
@@ -168,7 +171,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   autofocus: true,
                   keyboardType: TextInputType.number,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF3E1D01),
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
                     fontFamily: "Questrial",
@@ -187,7 +190,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(
+                      borderSide: BorderSide(
                         color: Color(0xFF3E1D01),
                       ),
                     ),
@@ -513,6 +516,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
           ),
+          SizedBox(width: 7), // space before divider
           Container(
             width: 10,
             alignment: Alignment.center,
@@ -521,16 +525,13 @@ class _DashboardPageState extends State<DashboardPage> {
               children: List.generate(
                   6,
                   (i) => Container(
-                        margin: const EdgeInsets.symmetric(vertical: 2),
-                        width: 3,
-                        height: 3,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF582901),
-                          shape: BoxShape.circle,
-                        ),
+                        width: 1,                        // thickness of line
+                        height: 10,                      // adjust to match card height
+                        color: Color(0xFF582901),        // same dark brown color
                       )),
             ),
           ),
+          SizedBox(width: 7), // space before divider
           Expanded(
             child: GestureDetector(
               onTap: () async {
@@ -593,7 +594,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       Column(
                         children: const [
                           Text(
-                            "34",
+                            "0",
                             style: TextStyle(
                               fontFamily: "PixelifySans",
                               fontSize: 90,
@@ -613,7 +614,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                       const SizedBox(width: 15),
                       Image.asset(
-                        "assets/images/dog.png",
+                        "assets/images/dog_egg.png",
                         height: 140,
                       ),
                     ],

@@ -57,44 +57,85 @@ class _StorePageState extends State<StorePage> {
   final List<Map<String, dynamic>> storeItems = [
     {
       'name': 'Streak Freeze',
-      'description':
-          'Out for vacation? Or perhaps a digital break? Streak freeze allows you to freeze your current streak to save your pet’s life!',
+      'description': 'This item allows you to freeze your current streak to save your pet\'s life!',
       'price': 50,
       'image': 'assets/images/streakfreeze.png',
     },
     {
       'name': 'Cool Glasses',
-      'description': 'You may equip this to your pet. “amazing”.',
-      'price': 199,
+      'description': 'Maximize your pet\'s swag and aura with these stylish shades!',
+      'price': 100,
       'image': 'assets/images/shades.png',
     },
     {
       'name': 'Bow',
-      'description':
-          'You may equip this to your pet. Your pet’s girliness is through the roof.',
-      'price': 150,
+      'description': 'The cutest little head accessory for the girlies!',
+      'price': 100,
       'image': 'assets/images/bow.png',
     },
     {
-      'name': 'Dexter’s Tie',
+      'name': 'Dexter\'s Tie',
       'description':
           'You may equip this to your pet. Nice tie, surely, one must follow a strict code for his dark passenger.',
-      'price': 89,
+      'price': 100,
       'image': 'assets/images/necktie.png',
     },
     {
       'name': 'Dog Egg',
-      'description': 'When this egg hatches. Get a random dog breed!',
+      'description': 'When this egg hatches, get a random dog breed!',
       'price': 249,
       'image': 'assets/images/dog_egg.png',
     },
     {
       'name': 'Cat Egg',
-      'description': 'When this egg hatches. Get a random cat breed!',
+      'description': 'When this egg hatches, get a random cat breed!',
       'price': 249,
       'image': 'assets/images/cat_egg.png',
     },
   ];
+
+  void _showSuccessPurchaseDialog(String itemName) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFFF5E6D3),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+        ),
+        title: const Text(
+          'Purchase Successful!',
+          style: TextStyle(
+            fontFamily: 'Questrial',
+            color: Color(0xFF6B4423),
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        content: Text(
+          'You purchased $itemName!',
+          style: const TextStyle(
+            fontFamily: 'Questrial',
+            color: Color(0xFF6B4423),
+            fontSize: 16,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6B4423),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('OK'),
+          ),
+        ],
+        actionsAlignment: MainAxisAlignment.center,
+      ),
+    );
+  }
 
   void _showConfirmDialog(Map<String, dynamic> item) {
     showDialog(
@@ -102,36 +143,50 @@ class _StorePageState extends State<StorePage> {
       builder: (context) {
         bool canAfford = coins >= item['price'];
         return AlertDialog(
-          backgroundColor: pageColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: const Color(0xFFF5E6D3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+          ),
           title: Text(
             'Purchase ${item['name']}?',
             style: const TextStyle(
               fontFamily: 'Questrial',
-              color: darkBrown,
+              color: Color(0xFF6B4423),
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
             ),
+            textAlign: TextAlign.center,
           ),
           content: Text(
             canAfford
                 ? 'This will cost ${item['price']} coins.'
-                : 'You don’t have enough coins to buy this item.',
+                : 'You don\'t have enough coins to buy this item.',
             style: const TextStyle(
               fontFamily: 'Questrial',
-              color: darkBrown,
+              color: Color(0xFF6B4423),
+              fontSize: 16,
             ),
+            textAlign: TextAlign.center,
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(
-                  fontFamily: 'Questrial',
-                  color: darkBrown,
+            if (!canAfford)
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6B4423),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('OK'),
+              ),
+            if (canAfford) ...[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Color(0xFF8B6443)),
                 ),
               ),
-            ),
-            if (canAfford)
               ElevatedButton(
                 onPressed: () async {
                   final price = item['price'] as int;
@@ -139,33 +194,20 @@ class _StorePageState extends State<StorePage> {
 
                   await _updateCoins(newCoins);
 
-                  Navigator.pop(context);
+                  if (!mounted) return;
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'You purchased ${item['name']}!',
-                        style: const TextStyle(fontFamily: 'Questrial'),
-                      ),
-                      backgroundColor: darkBrown,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
+                  Navigator.pop(context);
+                  _showSuccessPurchaseDialog(item['name']);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: darkBrown,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                  backgroundColor: const Color(0xFF6B4423),
+                  foregroundColor: Colors.white,
                 ),
-                child: const Text(
-                  'Confirm',
-                  style: TextStyle(
-                    fontFamily: 'Questrial',
-                    color: Colors.white,
-                  ),
-                ),
+                child: const Text('Confirm'),
               ),
+            ]
           ],
+          actionsAlignment: MainAxisAlignment.center,
         );
       },
     );
@@ -183,8 +225,8 @@ class _StorePageState extends State<StorePage> {
           border: Border.all(color: darkBrown, width: 1.2),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Image area
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -199,8 +241,10 @@ class _StorePageState extends State<StorePage> {
                 fit: BoxFit.contain,
               ),
             ),
-            const SizedBox(width: 16),
 
+            const SizedBox(width: 12),
+
+            // Name + description
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,11 +267,16 @@ class _StorePageState extends State<StorePage> {
                       color: darkBrown,
                       height: 1.3,
                     ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
 
+            const SizedBox(width: 5),
+
+            // Price
             Container(
               padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
               decoration: BoxDecoration(
@@ -253,7 +302,7 @@ class _StorePageState extends State<StorePage> {
                   ),
                 ],
               ),
-            ),
+            )
           ],
         ),
       ),
@@ -261,119 +310,102 @@ class _StorePageState extends State<StorePage> {
   }
 
   @override
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFFFF3E0),
-    body: Column(
-      children: [
-        CommonHeader(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'STORE',
-                style: TextStyle(
-                  fontFamily: 'Modak',
-                  fontSize: 40,
-                  color: Color(0xFFFDE6D0),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.brown,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Image.asset(
-                      'assets/images/coin.png',
-                      width: 26,
-                      height: 26,
-                    ),
-                    const SizedBox(width: 4),
-                    _loading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Text(
-                            '$coins',
-                            style: const TextStyle(
-                              fontFamily: 'Questrial',
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // +1 / -1 buttons
-        Padding(
-          padding: const EdgeInsets.only(top: 10, bottom: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () async {
-                  final newCoins = coins + 1;
-                  await _updateCoins(newCoins);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFFF3E0),
+      body: Column(
+        children: [
+          CommonHeader(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'STORE',
+                  style: TextStyle(
+                    fontFamily: 'Modak',
+                    fontSize: 40,
+                    color: Color(0xFFFDE6D0),
                   ),
                 ),
-                child: const Text(
-                  '+1 Coin',
-                  style: TextStyle(fontFamily: 'Questrial'),
-                ),
-              ),
-              const SizedBox(width: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  if (coins > 0) {
-                    final newCoins = coins - 1;
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.brown,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        'assets/images/coin.png',
+                        width: 26,
+                        height: 26,
+                      ),
+                      const SizedBox(width: 4),
+                      _loading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              '$coins',
+                              style: const TextStyle(
+                                fontFamily: 'Questrial',
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+
+          // +1 / -1 buttons
+          Padding(
+            padding: const EdgeInsets.only(top: 10, bottom: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    final newCoins = coins + 1;
                     await _updateCoins(newCoins);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  child: const Text('+1 Coin'),
                 ),
-                child: const Text(
-                  '-1 Coin',
-                  style: TextStyle(fontFamily: 'Questrial'),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (coins > 0) {
+                      final newCoins = coins - 1;
+                      await _updateCoins(newCoins);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  child: const Text('-1 Coin'),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
 
-        Expanded(
-          child: ListView.builder(
-            itemCount: storeItems.length,
-            itemBuilder: (context, index) {
-              return _buildStoreItem(storeItems[index]);
-            },
+          // Store list
+          Expanded(
+            child: ListView.builder(
+              itemCount: storeItems.length,
+              itemBuilder: (context, index) {
+                return _buildStoreItem(storeItems[index]);
+              },
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 }

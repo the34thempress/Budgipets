@@ -129,38 +129,77 @@ class _LogsPageState extends State<LogsPage> {
   }
 
   IconData _iconForCategory(String? cat, String kind) {
-    final map = <String, IconData>{
-      'Medical': Icons.medical_services,
-      'Water': Icons.receipt_long,
-      'Food': Icons.fastfood,
-      'Transport': Icons.directions_bus,
-      'Entertainment': Icons.star_rate,
-      'Pet': Icons.pets,
-      'Shopping': Icons.shopping_bag,
-      'Salary': Icons.attach_money,
-      'Uncategorized': Icons.more_horiz,
-    };
-    if (cat != null && map.containsKey(cat)) return map[cat]!;
-    if (kind == 'Income') return Icons.attach_money;
-    if (kind == 'Expense') return Icons.remove_circle;
-    return Icons.more_horiz;
+  // Expense categories
+  final expenseMap = <String, IconData>{
+    'Medical': Icons.healing,
+    'Car': Icons.directions_car,
+    'Food': Icons.fastfood,
+    'Travel': Icons.flight_takeoff,
+    'Recreation': Icons.sports_esports,
+    'Pets': Icons.pets,
+    'Bills': Icons.receipt_long,
+    'Other': Icons.category,
+  };
+  
+  // Income categories
+  final incomeMap = <String, IconData>{
+    'Salary': Icons.attach_money,
+    'Loan': Icons.handshake,
+    'Sold Item': Icons.shopping_bag,
+    'Donation': Icons.volunteer_activism,
+    'Other': Icons.category,
+  };
+  
+  // Check if it's an income or expense
+  if (kind == 'Income' && cat != null && incomeMap.containsKey(cat)) {
+    return incomeMap[cat]!;
+  }
+  
+  if (kind == 'Expense' && cat != null && expenseMap.containsKey(cat)) {
+    return expenseMap[cat]!;
+  }
+  
+  // Default icons
+  if (kind == 'Income') return Icons.attach_money;
+  return Icons.category;
+
   }
 
   Color _colorForCategory(String? cat, String kind) {
-    final map = <String, Color>{
-      'Medical': const Color(0xFF8E0F18),
-      'Water': const Color(0xFF3B7F55),
-      'Food': const Color(0xFFD0538E),
-      'Transport': const Color(0xFF4F2A09),
-      'Entertainment': const Color(0xFFF6A12C),
-      'Pet': const Color(0xFF4C6EF5),
-      'Shopping': const Color(0xFF9A4D8E),
-      'Salary': const Color(0xFFDB8F00),
-      'Uncategorized': const Color(0xFF666666),
-    };
-    if (cat != null && map.containsKey(cat)) return map[cat]!;
-    if (kind == 'Income') return const Color(0xFF2E8B57);
-    return const Color(0xFF4F2A09);
+  // Expense categories
+  final expenseMap = <String, Color>{
+    'Medical': const Color(0xFF720607),
+    'Car': const Color(0xFF073598),
+    'Food': const Color.fromARGB(255, 217, 124, 2),
+    'Travel': const Color(0xFF390488),
+    'Recreation': const Color(0xFFFEB65B),
+    'Pets': const Color(0xFFCD6082),
+    'Bills': Color.fromARGB(255, 65, 152, 104),
+    'Other': const Color(0xFF582901),
+  };
+  
+  // Income categories
+  final incomeMap = <String, Color>{
+    'Salary': Color.fromARGB(255, 67, 156, 70),
+    'Loan': Color.fromARGB(255, 1, 123, 111),
+    'Sold Item': Color.fromARGB(255, 22, 105, 173),
+    'Donation': Color.fromARGB(255, 121, 31, 137),
+    'Other': Color.fromARGB(255, 86, 59, 49),
+  };
+  
+  // Check if it's an income or expense
+  if (kind == 'Income' && cat != null && incomeMap.containsKey(cat)) {
+    return incomeMap[cat]!;
+  }
+  
+  if (kind == 'Expense' && cat != null && expenseMap.containsKey(cat)) {
+    return expenseMap[cat]!;
+  }
+  
+  // Default colors
+  if (kind == 'Income') return Colors.green;
+  return const Color(0xFF582901); // Default brown for uncategorized expense
+
   }
 
   Widget _logDate(String date) {
@@ -211,6 +250,8 @@ class _LogsPageState extends State<LogsPage> {
   @override
   Widget build(BuildContext context) {
     final dateKeys = _grouped.keys.toList();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 600;
 
     return Scaffold(
       backgroundColor: bgCream,
@@ -224,9 +265,9 @@ class _LogsPageState extends State<LogsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Your Logs", style: TextStyle(fontFamily: 'Modak', fontSize: 50, color: Colors.white)),
+                      Text("Your Logs", style: TextStyle(fontFamily: 'Modak', fontSize: 45, color: Colors.white)),
                       Text(
-                        "Here you’ll find all your logged\nexpenses and income!",
+                        "Here you'll find all your logged\nexpenses and income!",
                         style: bodyStyle(14),
                       ),
                     ],
@@ -241,51 +282,80 @@ class _LogsPageState extends State<LogsPage> {
             ),
           ),
 
-          // content area
+          // content area with max width constraint for large screens
           Expanded(
-            child: RefreshIndicator(
-              onRefresh: _loadLogs,
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _error != null
-                      ? ListView(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                          children: [
-                            Text('Error loading logs: $_error', style: const TextStyle(color: Colors.red)),
-                            const SizedBox(height: 12),
-                            ElevatedButton(
-                              onPressed: _loadLogs,
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                          itemCount: dateKeys.length + 1,
-                          itemBuilder: (context, index) {
-                            if (dateKeys.isEmpty) {
-                              return const Center(child: Text('No logs found.'));
-                            }
-                            if (index >= dateKeys.length) {
-                              return const SizedBox(height: 30);
-                            }
-                            final dateKey = dateKeys[index];
-                            final items = _grouped[dateKey] ?? [];
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: isLargeScreen ? 800 : double.infinity,
+                ),
+                child: RefreshIndicator(
+                  onRefresh: _loadLogs,
+                  child: _loading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _error != null
+                          ? ListView(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isLargeScreen ? 40 : 20,
+                                vertical: 20,
+                              ),
                               children: [
-                                _logDate(dateKey),
-                                ...items.map((it) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 10),
-                                    child: _logCard(it),
-                                  );
-                                }).toList(),
-                                const SizedBox(height: 18),
+                                Text('Error loading logs: $_error', style: const TextStyle(color: Colors.red)),
+                                const SizedBox(height: 12),
+                                ElevatedButton(
+                                  onPressed: _loadLogs,
+                                  child: const Text('Retry'),
+                                ),
                               ],
-                            );
-                          },
-                        ),
+                            )
+                          : dateKeys.isEmpty
+                              ? ListView(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isLargeScreen ? 40 : 20,
+                                    vertical: 20,
+                                  ),
+                                  children: const [
+                                    Center(
+                                      child: Text(
+                                        'No logs found.',
+                                        style: TextStyle(
+                                          fontFamily: 'Questrial',
+                                          fontSize: 16,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : ListView.builder(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isLargeScreen ? 40 : 20,
+                                    vertical: 20,
+                                  ),
+                                  itemCount: dateKeys.length + 1,
+                                  itemBuilder: (context, index) {
+                                    if (index >= dateKeys.length) {
+                                      return const SizedBox(height: 30);
+                                    }
+                                    final dateKey = dateKeys[index];
+                                    final items = _grouped[dateKey] ?? [];
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        _logDate(dateKey),
+                                        ...items.map((it) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(bottom: 10),
+                                            child: _logCard(it),
+                                          );
+                                        }).toList(),
+                                        const SizedBox(height: 18),
+                                      ],
+                                    );
+                                  },
+                                ),
+                ),
+              ),
             ),
           ),
         ],

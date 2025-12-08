@@ -5,6 +5,8 @@ import 'package:budgipets/widgets/note_input.dart';
 import 'package:budgipets/widgets/log_button.dart';
 import 'package:budgipets/widgets/main_page_nav_header.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:budgipets/widgets/reward_popup.dart';
+import 'package:budgipets/widgets/custom_tag_popup.dart'; 
 
 class LogEntryPage extends StatefulWidget {
   const LogEntryPage({super.key});
@@ -16,6 +18,12 @@ class LogEntryPage extends StatefulWidget {
 class _LogEntryPageState extends State<LogEntryPage> {
   final controller = LogEntryController();
   bool _isSubmitting = false;
+
+  @override
+void initState() {
+  super.initState();
+  // Load custom tags when page initializes
+}
 
   DateTime _monthStart(DateTime dt) => DateTime(dt.year, dt.month, 1);
   String _msStr(DateTime ms) =>
@@ -30,128 +38,274 @@ class _LogEntryPageState extends State<LogEntryPage> {
     );
   }
 
-  Future<void> _submitLog() async {
-    if (_isSubmitting) return;
-    setState(() => _isSubmitting = true);
+  Future<bool> _isFirstLogToday(SupabaseClient supabase, String userId) async {
+  final now = DateTime.now();
+  final startOfDay = DateTime(now.year, now.month, now.day);
+  final endOfDay = startOfDay.add(const Duration(days: 1));
 
-    try {
-      final supabase = Supabase.instance.client;
-      final user = supabase.auth.currentUser;
-      if (user == null) {
-        throw Exception('You are not signed in.');
+  final logs = await supabase
+      .from('spend_logs')
+      .select('id')
+      .eq('user_id', userId)
+      .gte('occurred_at', startOfDay.toIso8601String())
+      .lt('occurred_at', endOfDay.toIso8601String())
+      .limit(1);
+
+  return logs.isEmpty;
+}
+
+Future<int> _getCurrentStreak(SupabaseClient supabase, String userId) async {
+  // Get all logs ordered by date
+  final logs = await supabase
+      .from('spend_logs')
+      .select('occurred_at')
+      .eq('user_id', userId)
+      .order('occurred_at', ascending: false);
+
+  if (logs.isEmpty) return 1; // First log ever
+
+  int streak = 0;
+  DateTime checkDate = DateTime.now();
+  
+  for (var i = 0; i < logs.length; i++) {
+    final logDate = DateTime.parse(logs[i]['occurred_at'] as String);
+    final logDay = DateTime(logDate.year, logDate.month, logDate.day);
+    final checkDay = DateTime(checkDate.year, checkDate.month, checkDate.day);
+    
+    if (logDay == checkDay) {
+      streak++;
+      checkDate = checkDate.subtract(const Duration(days: 1));
+    } else if (logDay.isBefore(checkDay)) {
+      // Check if we skipped a day
+      final dayDiff = checkDay.difference(logDay).inDays;
+      if (dayDiff > 1) break; // Streak broken
+      streak++;
+      checkDate = logDay.subtract(const Duration(days: 1));
+    }
+  }
+  
+  return streak > 0 ? streak : 1;
+}
+
+Future<void> _submitLog() async {
+  if (_isSubmitting) return;
+  setState(() => _isSubmitting = true);
+
+  try {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+    if (user == null) {
+      throw Exception('You are not signed in.');
+    }
+
+    final raw = controller.amountController.text.trim();
+    final normalized = raw.replaceAll(',', '');
+    final amount = double.tryParse(normalized);
+    if (amount == null || amount <= 0) {
+      throw Exception('Please enter a valid amount greater than 0.');
+    }
+
+    final kind = controller.selectedType;
+    final isExpense = kind == 'Expense';
+    
+    // Check if this is the first log of the day BEFORE inserting
+    final isFirstLog = await _isFirstLogToday(supabase, user.id);
+    final currentStreak = isFirstLog ? await _getCurrentStreak(supabase, user.id) : 0;
+    
+    final category = controller.selectedCategory.isEmpty ? null : controller.selectedCategory;
+    final note = controller.noteController.text.trim().isEmpty ? null : controller.noteController.text.trim();
+    final label = (category ?? 'Uncategorized');
+
+    await _ensureBudgetRowExists(supabase, user.id);
+
+    final data = <String, dynamic>{
+      'user_id': user.id,
+      'label': label,
+      'amount': amount,
+      'occurred_at': DateTime.now().toIso8601String(),
+    };
+
+    final kindValue = controller.selectedType ?? 'Expense';
+    data['kind'] = kindValue;
+
+    if (category != null && category.isNotEmpty) {
+      data['category'] = category;
+    }
+    if (note != null && note.isNotEmpty) {
+      data['note'] = note;
+    }
+
+    await supabase.from('spend_logs').insert(data);
+
+    final ms = _monthStart(DateTime.now());
+    final monthStr = _msStr(ms);
+    final budgetRow = await supabase
+        .from('budgets')
+        .select('balance')
+        .eq('user_id', user.id)
+        .eq('month_start', monthStr)
+        .single();
+
+    final currentBalance = (budgetRow['balance'] as num?) ?? 0;
+
+    final delta = isExpense ? -amount : amount;
+    final newBalance = (currentBalance as num) + delta;
+
+    await supabase
+        .from('budgets')
+        .update({'balance': newBalance})
+        .eq('user_id', user.id)
+        .eq('month_start', monthStr);
+
+controller.amountController.clear();
+controller.noteController.clear();
+controller.clearTemporaryTag(); // Add this line
+setState(() {});
+
+    if (!mounted) return;
+
+    // Show reward popup only on first log of the day
+    if (isFirstLog) {
+      if (isExpense) {
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (BuildContext context) {
+            return ExpenseRewardPopup(
+              streakDays: currentStreak,
+              coinReward: 15,
+              evolutionTokens: 50,
+              amountDeducted: amount,
+            );
+          },
+        );
+      } else {
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (BuildContext context) {
+            return IncomeRewardPopup(
+              streakDays: currentStreak,
+              coinReward: 15,
+              evolutionTokens: 50,
+              amountAdded: amount,
+            );
+          },
+        );
       }
-
-      final raw = controller.amountController.text.trim();
-      final normalized = raw.replaceAll(',', '');
-      final amount = double.tryParse(normalized);
-      if (amount == null || amount <= 0) {
-        throw Exception('Please enter a valid amount greater than 0.');
-      }
-
-      final kind = controller.selectedType;
-      final isExpense = kind == 'Expense';
-      final category =
-          controller.selectedCategory.isEmpty ? null : controller.selectedCategory;
-      final note =
-          controller.noteController.text.trim().isEmpty ? null : controller.noteController.text.trim();
-      final label = (category ?? 'Uncategorized');
-
-      await _ensureBudgetRowExists(supabase, user.id);
-
-      final data = <String, dynamic>{
-        'user_id': user.id,
-        'label': label,
-        'amount': amount,
-        'occurred_at': DateTime.now().toIso8601String(),
-      };
-
-      final kindValue = controller.selectedType ?? 'Expense';
-      data['kind'] = kindValue;
-
-      if (category != null && category.isNotEmpty) {
-        data['category'] = category;
-      }
-      if (note != null && note.isNotEmpty) {
-        data['note'] = note;
-      }
-
-      await supabase.from('spend_logs').insert(data);
-
-      final ms = _monthStart(DateTime.now());
-      final monthStr = _msStr(ms);
-      final budgetRow = await supabase
-          .from('budgets')
-          .select('balance')
-          .eq('user_id', user.id)
-          .eq('month_start', monthStr)
-          .single();
-
-      final currentBalance = (budgetRow['balance'] as num?) ?? 0;
-
-      final delta = isExpense ? -amount : amount;
-      final newBalance = (currentBalance as num) + delta;
-
-      await supabase
-          .from('budgets')
-          .update({'balance': newBalance})
-          .eq('user_id', user.id)
-          .eq('month_start', monthStr);
-
-      controller.amountController.clear();
-      controller.noteController.clear();
-
-      if (!mounted) return;
-
+    } else {
+      // Show regular popup for subsequent logs
       showDialog(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: const Color(0xFFF5E6D3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+          ),
           title: const Text(
-            "Success",
-            style: TextStyle(fontFamily: "Modak", color: Color(0xFF5C2E14)),
+            'Success',
+            style: TextStyle(
+              fontFamily: 'Questrial',
+              color: Color(0xFF6B4423),
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
           ),
           content: Text(
             isExpense
                 ? "Logged expense and deducted ₱${amount.toStringAsFixed(2)}."
                 : "Logged income and added ₱${amount.toStringAsFixed(2)}.",
+            style: const TextStyle(
+              fontFamily: 'Questrial',
+              color: Color(0xFF6B4423),
+              fontSize: 16,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                // Use dialogContext instead of context to close the dialog
-                Navigator.pop(dialogContext);
-              },
-              child: const Text("OK", style: TextStyle(color: Color(0xFF5C2E14))),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6B4423),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: 'Questrial',
+                  fontSize: 16,
+                ),
+              ),
             ),
           ],
+          actionsAlignment: MainAxisAlignment.center,
         ),
       );
-    } catch (e) {
-      if (!mounted) return;
-      showDialog(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: const Text(
-            "Error",
-            style: TextStyle(fontFamily: "Modak", color: Color(0xFF5C2E14)),
-          ),
-          content: Text(e.toString()),
-          actions: [
-            TextButton(
-              onPressed: () {
-                // Use dialogContext instead of context to close the dialog
-                Navigator.pop(dialogContext);
-              },
-              child: const Text("OK", style: TextStyle(color: Color(0xFF5C2E14))),
-            ),
-          ],
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
     }
+  } catch (e) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFFF5E6D3),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+        ),
+        title: const Text(
+          'Error',
+          style: TextStyle(
+            fontFamily: 'Questrial',
+            color: Color(0xFF6B4423),
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        content: Text(
+          e.toString(),
+          style: const TextStyle(
+            fontFamily: 'Questrial',
+            color: Color(0xFF6B4423),
+            fontSize: 16,
+            height: 1.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6B4423),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+            child: const Text(
+              'OK',
+              style: TextStyle(
+                fontFamily: 'Questrial',
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
+        actionsAlignment: MainAxisAlignment.center,
+      ),
+    );
+  } finally {
+    if (mounted) setState(() => _isSubmitting = false);
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -163,72 +317,68 @@ class _LogEntryPageState extends State<LogEntryPage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              CommonHeader(
+CommonHeader(
                 goToDashboard: true,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "What would you like to log?",
-                          style: TextStyle(
-                            fontFamily: "Modak",
-                            fontSize: 25,
-                            color: Color(0xFFFDE6D0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "What would you like to log?",
+                            style: TextStyle(
+                              fontFamily: "Modak",
+                              fontSize: 30,
+                              color: Colors.white,
+                              height: 1.0, 
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.5,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFDE6D0),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                child: DropdownButton<String>(
-                                  value: controller.selectedType,
-                                  dropdownColor: const Color(0xFFFDE6D0),
-                                  isExpanded: true,
-                                  underline: const SizedBox(),
-                                  icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF6B3E1D)),
-                                  items: ['Expense', 'Income']
-                                      .map((type) => DropdownMenuItem(
-                                            value: type,
-                                            child: Text(
-                                              type,
-                                              style: const TextStyle(
-                                                color: Color(0xFF6B3E1D),
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: "Questrial",
-                                              ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.5,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFDE6D0),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              child: DropdownButton<String>(
+                                value: controller.selectedType,
+                                dropdownColor: const Color(0xFFFDE6D0),
+                                isExpanded: true,
+                                underline: const SizedBox(),
+                                icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF6B3E1D)),
+                                items: ['Expense', 'Income']
+                                    .map((type) => DropdownMenuItem(
+                                          value: type,
+                                          child: Text(
+                                            type,
+                                            style: const TextStyle(
+                                              color: Color(0xFF6B3E1D),
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: "Questrial",
                                             ),
-                                          ))
-                                      .toList(),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      controller.selectedType = value!;
-                                      controller.selectedCategory = '';
-                                    });
-                                  },
-                                ),
+                                          ),
+                                        ))
+                                    .toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    controller.selectedType = value!;
+                                    controller.selectedCategory = '';
+                                  });
+                                },
                               ),
                             ),
-                            Image.asset(
-                              "assets/images/dog.png",
-                              height: 80,
-                              fit: BoxFit.contain,
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
+                    Image.asset(
+                      'assets/images/dog.png',
+                      width: 130,
+                      height: 130,
+                    )
                   ],
                 ),
               ),
@@ -244,7 +394,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
                       "Amount",
                       style: TextStyle(
                         fontFamily: "Modak",
-                        fontSize: 18,
+                        fontSize: 23,
                         color: Color(0xFF6B3E1D),
                       ),
                     ),
@@ -267,7 +417,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
                             style: TextStyle(
                               color: Color(0xFF6B3E1D),
                               fontSize: 20,
-                              fontFamily: "PixelifySans-VariableFont_wght",
+                              fontFamily: "Questrial",
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -276,7 +426,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
                               controller: controller.amountController,
                               keyboardType: TextInputType.number,
                               style: const TextStyle(
-                                fontFamily: "PixelifySans-VariableFont_wght",
+                                fontFamily: "Questrial",
                                 fontSize: 15,
                                 color: Color(0xFF6B3E1D),
                               ),
@@ -285,7 +435,7 @@ class _LogEntryPageState extends State<LogEntryPage> {
                                 hintText: "Enter Amount",
                                 hintStyle: TextStyle(
                                   color: Colors.black38,
-                                  fontFamily: "PixelifySans-VariableFont_wght",
+                                  fontFamily: "Questrial",
                                 ),
                                 border: InputBorder.none,
                                 isDense: true,
@@ -308,11 +458,31 @@ class _LogEntryPageState extends State<LogEntryPage> {
                     ),
                     const SizedBox(height: 8),
 
-                    CategoryGrid(
+                   CategoryGrid(
                       categories: categories,
                       selectedCategory: controller.selectedCategory,
                       onSelect: (cat) {
                         setState(() => controller.selectedCategory = cat);
+                      },
+                      onOtherTapped: () {
+                        // Show custom tag popup when "Other" is pressed
+                        showDialog(
+                          context: context,
+                          builder: (context) => CustomTagPopup(
+                            onTagCreated: (name, color, icon) {
+                              setState(() {
+                                // Create temporary custom tag that replaces "Other"
+                                controller.temporaryCustomTag = {
+                                  'name': name,
+                                  'color': color,
+                                  'icon': icon,
+                                };
+                                // Set it as selected
+                                controller.selectedCategory = name;
+                              });
+                            },
+                          ),
+                        );
                       },
                     ),
                     const SizedBox(height: 20),

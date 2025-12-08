@@ -45,7 +45,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   style: TextStyle(
                     fontFamily: "Modak",
                     fontSize: 40,
-                    color: Color(0xFFFDE6D0),
+                    color: Colors.white
                   ),
                 )
               ],
