@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../dashboard/dashboard.dart';
 
 class PetManagementPage extends StatefulWidget {
@@ -10,6 +11,8 @@ class PetManagementPage extends StatefulWidget {
 }
 
 class _PetManagementPageState extends State<PetManagementPage> {
+  final _supabase = Supabase.instance.client;
+
   // Only dog accessory positions
   final List<Map<String, dynamic>> petAccessories = [
     {
@@ -32,10 +35,9 @@ class _PetManagementPageState extends State<PetManagementPage> {
     },
   ];
 
-  // Hardcoded inventory for now
+  // Inventory: ONLY Budgimeal now
   final List<Map<String, dynamic>> inventoryItems = [
-    {'image': 'assets/images/coin.png', 'count': 175},
-    {'image': 'assets/images/budgimeal.png', 'count': 50}, // 50 Budgimeal
+    {'image': 'assets/images/budgimeal.png', 'count': 50},
   ];
 
   int wardrobeOffset = 0;
@@ -43,14 +45,13 @@ class _PetManagementPageState extends State<PetManagementPage> {
   Set<String> equippedItems = {};
   bool isLoading = true;
 
-  // Pet stats
+  // Pet stats from backend
   int sickness = 0;
+  int totalFeeds = 0; // total feeds across all stages
+  String petType = 'dog'; // 'dog' or 'cat'
 
-  /// Total number of times pet has been fed
-  int totalFeeds = 0;
-
-  /// Stage: 1, 2, 3
-  int stage = 1;
+  // Local Budgimeal persistence
+  int budgimealCount = 50;
 
   @override
   void initState() {
@@ -60,16 +61,92 @@ class _PetManagementPageState extends State<PetManagementPage> {
 
   Future<void> _loadPetData() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      final equippedList = prefs.getStringList('equipped_items') ?? [];
-      equippedItems = Set<String>.from(equippedList);
-      isLoading = false;
-    });
+
+    // Load locally equipped accessories
+    final equippedList = prefs.getStringList('equipped_items') ?? [];
+    equippedItems = Set<String>.from(equippedList);
+
+    // Load Budgimeal count locally (default 50 if not yet saved)
+    budgimealCount = prefs.getInt('budgimeal_count') ?? 50;
+    final budgimealItem = inventoryItems.firstWhere(
+      (item) => item['image'] == 'assets/images/budgimeal.png',
+      orElse: () => {},
+    );
+    if (budgimealItem.isNotEmpty) {
+      budgimealItem['count'] = budgimealCount;
+    }
+
+    // Load pet from Supabase
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user != null) {
+        final userId = user.id;
+
+        final List<dynamic> rows =
+            await _supabase.from('pets').select().eq('user_id', userId);
+
+        Map<String, dynamic> petRow;
+
+        if (rows.isNotEmpty) {
+          petRow = rows.first as Map<String, dynamic>;
+        } else {
+          // Create default pet row if none exists
+          final inserted = await _supabase
+              .from('pets')
+              .insert({
+                'user_id': userId,
+                'pet_type': 'dog',
+                'total_feeds': 0,
+                'sickness': 0,
+              })
+              .select()
+              .single();
+          petRow = inserted as Map<String, dynamic>;
+        }
+
+        petType = (petRow['pet_type'] as String?) ?? 'dog';
+        totalFeeds = (petRow['total_feeds'] as int?) ?? 0;
+        sickness = (petRow['sickness'] as int?) ?? 0;
+      }
+    } catch (e) {
+      debugPrint('Error loading pet from Supabase: $e');
+      // Use defaults if something fails
+    }
+
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
-  Future<void> _savePetData() async {
+  Future<void> _savePetToBackend() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return;
+      final userId = user.id;
+
+      await _supabase
+          .from('pets')
+          .update({
+            'pet_type': petType,
+            'total_feeds': totalFeeds,
+            'sickness': sickness,
+          })
+          .eq('user_id', userId);
+    } catch (e) {
+      debugPrint('Error saving pet to Supabase: $e');
+    }
+  }
+
+  Future<void> _savePetDataLocal() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList('equipped_items', equippedItems.toList());
+  }
+
+  Future<void> _saveBudgimealCountLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('budgimeal_count', budgimealCount);
   }
 
   List<dynamic> rotated(List<dynamic> list, int offset) {
@@ -99,29 +176,24 @@ class _PetManagementPageState extends State<PetManagementPage> {
       } else {
         equippedItems.add(itemPath);
       }
-      _savePetData();
+      _savePetDataLocal();
     });
   }
 
-  // Stage logic (based on TOTAL feeds):
+  // Stage logic from total feeds:
   // Stage 1: totalFeeds < 5
-  // Stage 2: 5 <= totalFeeds < 35   (5 + 30)
+  // Stage 2: 5 <= totalFeeds < 35
   // Stage 3: totalFeeds >= 35
-  void _updateStageFromTotalFeeds() {
-    if (totalFeeds >= 35) {
-      stage = 3;
-    } else if (totalFeeds >= 5) {
-      stage = 2;
-    } else {
-      stage = 1;
-    }
+  int _stageFromTotalFeeds() {
+    if (totalFeeds >= 35) return 3;
+    if (totalFeeds >= 5) return 2;
+    return 1;
   }
 
-  void _feedFromInventoryIndex(int rotatedIndex) {
+  void _feedFromInventoryIndex(int rotatedIndex) async {
     final n = inventoryItems.length;
     if (n == 0) return;
 
-    // Map rotated index back to original index
     final originalIndex = (rotatedIndex + inventoryOffset) % n;
     final item = inventoryItems[originalIndex];
 
@@ -129,9 +201,40 @@ class _PetManagementPageState extends State<PetManagementPage> {
         (item['count'] as int) > 0) {
       setState(() {
         item['count'] = (item['count'] as int) - 1;
+        budgimealCount = item['count'] as int;
         totalFeeds += 1;
-        _updateStageFromTotalFeeds();
       });
+
+      await _saveBudgimealCountLocal();
+      await _savePetToBackend();
+
+      if (mounted) setState(() {});
+    }
+  }
+
+  // RESET BUTTON: resets pet progression (feeds + sickness)
+  Future<void> _resetPet() async {
+    setState(() {
+      totalFeeds = 0;
+      sickness = 0;
+    });
+    await _savePetToBackend();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  // Choose correct pet image based on petType + stage
+  String _getPetImageForStage(int stage) {
+    if (petType == 'cat') {
+      if (stage == 1) return 'assets/images/cat_egg.png';
+      if (stage == 2) return 'assets/images/kitten.png';
+      return 'assets/images/cat.png';
+    } else {
+      // default dog
+      if (stage == 1) return 'assets/images/dog_egg.png';
+      if (stage == 2) return 'assets/images/puppy.png';
+      return 'assets/images/dog.png';
     }
   }
 
@@ -152,7 +255,9 @@ class _PetManagementPageState extends State<PetManagementPage> {
     final rotatedInventory =
         rotated(inventoryItems, inventoryOffset).cast<Map<String, dynamic>>();
 
-    // Level per stage (resets each stage visually)
+    final int stage = _stageFromTotalFeeds();
+
+    // Level per stage (resets visually per stage)
     int displayLevel;
     if (stage == 1) {
       displayLevel = totalFeeds;
@@ -160,7 +265,6 @@ class _PetManagementPageState extends State<PetManagementPage> {
       displayLevel = totalFeeds - 5;
       if (displayLevel < 0) displayLevel = 0;
     } else {
-      // stage 3
       displayLevel = totalFeeds - 35;
       if (displayLevel < 0) displayLevel = 0;
     }
@@ -173,7 +277,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Top area with background + dog
+              // Top area with background + pet
               Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
@@ -216,7 +320,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
                     ),
                   ),
 
-                  // Dog with equipped items overlay
+                  // Pet with equipped accessories
                   Positioned(
                     bottom: 18,
                     child: SizedBox(
@@ -226,7 +330,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
                         alignment: Alignment.center,
                         children: [
                           Image.asset(
-                            'assets/images/dog.png',
+                            _getPetImageForStage(stage),
                             width: 220,
                             fit: BoxFit.contain,
                           ),
@@ -285,7 +389,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
 
               const SizedBox(height: 10),
 
-              // Stage / Level / Sickness / Age – more visually appealing card, no big gap
+              // Stage / Level / Sickness / Age card + Reset button under it
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 26),
                 padding:
@@ -310,11 +414,11 @@ class _PetManagementPageState extends State<PetManagementPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Stage $stage',
+                          'Stage $stage (${petType == 'cat' ? 'Cat' : 'Dog'})',
                           style: const TextStyle(
                             fontFamily: 'Questrial',
                             fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w700, // bold
                             color: darkBrown,
                           ),
                         ),
@@ -324,13 +428,14 @@ class _PetManagementPageState extends State<PetManagementPage> {
                           style: const TextStyle(
                             fontFamily: 'Questrial',
                             fontSize: 13,
+                            fontWeight: FontWeight.w600, // slightly bold
                             color: darkBrown,
                           ),
                         ),
                       ],
                     ),
 
-                    // Sickness + Age (no large gap between them)
+                    // Sickness + Age
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -339,6 +444,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
                           style: const TextStyle(
                             fontFamily: 'Questrial',
                             fontSize: 13,
+                            fontWeight: FontWeight.w600, // bold-ish
                             color: darkBrown,
                           ),
                         ),
@@ -348,6 +454,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
                           style: TextStyle(
                             fontFamily: 'Questrial',
                             fontSize: 13,
+                            fontWeight: FontWeight.w600, // bold-ish
                             color: darkBrown,
                           ),
                         ),
@@ -357,12 +464,31 @@ class _PetManagementPageState extends State<PetManagementPage> {
                 ),
               ),
 
+              const SizedBox(height: 6),
+
+              // Reset button (resets stage/level/sickness)
+              TextButton(
+                onPressed: _resetPet,
+                style: TextButton.styleFrom(
+                  foregroundColor: darkBrown,
+                ),
+                child: const Text(
+                  'Reset Pet Progress',
+                  style: TextStyle(
+                    fontFamily: 'Questrial',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 18),
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
+                    // Wardrobe
                     _carouselCard(
                       title: 'Wardrobe',
                       height: 165,
@@ -376,9 +502,25 @@ class _PetManagementPageState extends State<PetManagementPage> {
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 8),
                                 child: GestureDetector(
-                                  onTap: () => _toggleEquipItem(
-                                    rotatedWardrobe[i]['image'] as String,
-                                  ),
+                                  onTap: () {
+                                    final currentStage =
+                                        _stageFromTotalFeeds();
+                                    if (currentStage < 3) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'This item is not available for your current pet stage.',
+                                          ),
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                    } else {
+                                      _toggleEquipItem(
+                                        rotatedWardrobe[i]['image'] as String,
+                                      );
+                                    }
+                                  },
                                   child: Container(
                                     width: 75,
                                     height: 75,
@@ -416,7 +558,7 @@ class _PetManagementPageState extends State<PetManagementPage> {
 
                     const SizedBox(height: 20),
 
-                    // Inventory card
+                    // Inventory (Budgimeal only)
                     _carouselCard(
                       title: 'Inventory',
                       height: 210,
@@ -458,7 +600,6 @@ class _PetManagementPageState extends State<PetManagementPage> {
                                       ),
                                     ),
                                     const SizedBox(height: 6),
-                                    // Feed button only for Budgimeal
                                     if (rotatedInventory[i]['image'] ==
                                         'assets/images/budgimeal.png')
                                       SizedBox(
@@ -565,7 +706,9 @@ class _PetManagementPageState extends State<PetManagementPage> {
           border: Border.all(color: darkBrown, width: 2),
         ),
         child: Icon(
-          isLeft ? Icons.arrow_back_ios_new_rounded : Icons.arrow_forward_ios_rounded,
+          isLeft
+              ? Icons.arrow_back_ios_new_rounded
+              : Icons.arrow_forward_ios_rounded,
           size: 18,
           color: darkBrown,
         ),
