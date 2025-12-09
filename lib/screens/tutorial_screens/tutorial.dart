@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart'; // ✅ Added Supabase
-import '../../pages/dashboard/dashboard.dart'; // ✅ Fixed dashboard import
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../pages/dashboard/dashboard.dart';
 
 class TutorialScreen extends StatefulWidget {
-  const TutorialScreen({Key? key}) : super(key: key);
+  const TutorialScreen({super.key}); // use super.key
 
   @override
   State<TutorialScreen> createState() => _TutorialScreenState();
 }
 
 class _TutorialScreenState extends State<TutorialScreen> {
-  int currentSlide = 0;
+  int currentSlideIndex = 0;
+  List<int> availableSlides = [];
+
   String userType = 'Student/Employee';
   String monthlyAllowance = '';
   String selectedPet = '';
   String petName = '';
   String displayName = '';
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _allowanceController = TextEditingController();
   final TextEditingController _displayNameController = TextEditingController();
@@ -30,497 +33,380 @@ class _TutorialScreenState extends State<TutorialScreen> {
     super.dispose();
   }
 
-Future<void> showStyledPopup({
-  required BuildContext context,
-  required String title,
-  required String message,
-}) async {
-  return showDialog(
-    context: context,
-    builder: (context) {
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final maxWidth = (constraints.maxWidth * 0.9).clamp(0, 500.0) as double;
+  @override
+  void initState() {
+    super.initState();
+    _loadSlides();
+  }
 
-          return AlertDialog(
-            backgroundColor: const Color(0xFFFDE6D0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: Color(0xFF6B4423), width: 3),
-            ),
-            contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-            insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+  Future<void> _loadSlides() async {
+    final prefs = await SharedPreferences.getInstance();
 
-            // FORCE POPUP WIDTH
-            content: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Logo
-                  Image.asset(
-                    'assets/images/logo.png',
-                    height: 70,
-                  ),
+    // Always include checklist slides
+    availableSlides = [0, 1, 2];
 
-                  const SizedBox(height: 15),
+    // Only include slides if values not yet set
+    if ((prefs.getString('selected_pet') ?? '').isEmpty) availableSlides.add(3);
+    if ((prefs.getString('pet_name') ?? '').isEmpty) availableSlides.add(4);
+    if ((prefs.getString('display_name') ?? '').isEmpty ||
+        (prefs.getString('monthly_allowance') ?? '').isEmpty) availableSlides.add(5);
 
-                  // Title
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontFamily: 'Questrial',
-                      color: Color(0xFF6B4423),
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+    // Pre-fill existing values
+    selectedPet = prefs.getString('selected_pet') ?? '';
+    petName = prefs.getString('pet_name') ?? '';
+    displayName = prefs.getString('display_name') ?? '';
+    monthlyAllowance = prefs.getString('monthly_allowance') ?? '';
 
-                  const SizedBox(height: 12),
+    _nameController.text = petName;
+    _displayNameController.text = displayName;
+    _allowanceController.text = monthlyAllowance;
 
-                  // Message
-                  Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontFamily: 'Questrial',
-                      color: Color(0xFF6B4423),
-                      fontSize: 16,
-                      height: 1.4,
-                    ),
-                  ),
+    setState(() {
+      currentSlideIndex = 0;
+    });
+  }
 
-                  const SizedBox(height: 25),
+  Future<void> showStyledPopup({
+    required BuildContext context,
+    required String title,
+    required String message,
+  }) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final maxWidth = (constraints.maxWidth * 0.9).clamp(0, 500.0) as double;
 
-                  // OK Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6B4423),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 14, horizontal: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                      child: const Text(
-                        'OK',
-                        style: TextStyle(
-                          fontFamily: 'Questrial',
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-                ],
+            return AlertDialog(
+              backgroundColor: const Color(0xFFFDE6D0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: const BorderSide(color: Color(0xFF6B4423), width: 3),
               ),
-            ),
-          );
-        },
+              contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+              content: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/images/logo.png',
+                      height: 70,
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'Questrial',
+                        color: Color(0xFF6B4423),
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'Questrial',
+                        color: Color(0xFF6B4423),
+                        fontSize: 16,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6B4423),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 14, horizontal: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: const Text(
+                          'OK',
+                          style: TextStyle(
+                            fontFamily: 'Questrial',
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void handleNext() {
+    final currentSlide = availableSlides[currentSlideIndex];
+
+    // Slide 3 → Pet selection check
+    if (currentSlide == 3 && selectedPet.isEmpty) {
+      showStyledPopup(
+        context: context,
+        title: "Pet Not Selected",
+        message: "Please choose a pet before continuing.",
       );
-    },
+      return;
+    }
+
+    // Slide 4 → Pet name validation
+    if (currentSlide == 4) {
+      if (petName.trim().isEmpty) {
+        showStyledPopup(
+          context: context,
+          title: "Pet Name Empty",
+          message: "Please enter a name for your pet before continuing.",
+        );
+        return;
+      }
+      if (petName.trim().length > 12) {
+        showStyledPopup(
+          context: context,
+          title: "Name Too Long",
+          message: "Your pet's name is too long. Please limit it to 12 characters.",
+        );
+        return;
+      }
+    }
+
+    // Slide 5 → Display name validation
+    if (currentSlide == 5) {
+      if (displayName.trim().isEmpty) {
+        showStyledPopup(
+          context: context,
+          title: "Display Name Empty",
+          message: "Please enter a display name before continuing.",
+        );
+        return;
+      }
+    }
+
+    // Continue to next slide
+    if (currentSlideIndex < availableSlides.length - 1) {
+      setState(() {
+        currentSlideIndex++;
+      });
+    }
+  }
+
+  void handleBack() {
+    if (currentSlideIndex > 0) {
+      setState(() => currentSlideIndex--);
+    }
+  }
+
+  Future<void> handleFinish() async {
+  // Only run slide 5 validations if the slide exists in this session
+  if (availableSlides.contains(5)) {
+    if (displayName.trim().isEmpty) {
+      await showStyledPopup(
+        context: context,
+        title: "Display Name Empty",
+        message: "Please enter a display name before continuing.",
+      );
+      return;
+    }
+    if (displayName.trim().length > 12) {
+      await showStyledPopup(
+        context: context,
+        title: "Display Name Too Long",
+        message: "Display name must be 12 characters or less.",
+      );
+      return;
+    }
+    if (RegExp(r'^[0-9]+$').hasMatch(displayName.trim())) {
+      await showStyledPopup(
+        context: context,
+        title: "Invalid Display Name",
+        message: "Display name cannot contain only numbers. Please include letters.",
+      );
+      return;
+    }
+    if (monthlyAllowance.trim().isEmpty) {
+      await showStyledPopup(
+        context: context,
+        title: "Allowance Empty",
+        message: "Please enter your monthly allowance before continuing.",
+      );
+      return;
+    }
+    final allowanceNum = double.tryParse(monthlyAllowance.trim());
+    if (allowanceNum == null || allowanceNum <= 0) {
+      await showStyledPopup(
+        context: context,
+        title: "Invalid Allowance",
+        message: "Please enter a valid positive number for your monthly allowance.",
+      );
+      return;
+    }
+  }
+
+  // Save data regardless of slides
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('tutorial_completed', true);
+  if (selectedPet.isNotEmpty) await prefs.setString('selected_pet', selectedPet);
+  if (petName.isNotEmpty) await prefs.setString('pet_name', petName);
+  if (displayName.isNotEmpty) await prefs.setString('display_name', displayName);
+  await prefs.setString('user_type', userType);
+  if (monthlyAllowance.isNotEmpty) {
+    await prefs.setString('monthly_allowance', monthlyAllowance);
+  }
+
+  try {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      await Supabase.instance.client
+          .from('users')
+          .update({'tutorial_completed': true})
+          .eq('id', user.id);
+    }
+  } catch (e) {
+    debugPrint('Error updating Supabase tutorial_completed: $e');
+  }
+
+  if (!context.mounted) return;
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => const DashboardPage()),
   );
 }
 
 
-void handleNext() {
+  Widget _buildSlideContent() {
+    if (availableSlides.isEmpty) return Container();
 
-const int petNameMaxLength = 12;
-
-  // Slide 3 → Pet selection check
-  if (currentSlide == 3 && selectedPet.isEmpty) {
-    showStyledPopup(
-      context: context,
-      title: "Pet Not Selected",
-      message: "Please choose a pet before continuing.",
-    );
-    return;
-  }
-
-  // Slide 4 → Pet name validation
-  if (currentSlide == 4) {
-    if (petName.trim().isEmpty) {
-      showStyledPopup(
-        context: context,
-        title: "Pet Name Empty",
-        message: "Please enter a name for your pet before continuing.",
-      );
-      return;
-    }
-
-    if (petName.trim().length > petNameMaxLength) {
-      showStyledPopup(
-        context: context,
-        title: "Name Too Long",
-        message:
-            "Your pet's name is too long. Please limit it to $petNameMaxLength characters.",
-      );
-      return;
+    final slide = availableSlides[currentSlideIndex];
+    switch (slide) {
+      case 0: return _buildWelcomeSlide();
+      case 1: return _buildChecklistSlide();
+      case 2: return _buildChecklist2Slide();
+      case 3: return _buildChoosePetSlide();
+      case 4: return _buildNamePetSlide();
+      case 5: return _buildAllowanceSlide();
+      default: return Container();
     }
   }
 
-  // Slide 5 → Display name validation
-  if (currentSlide == 5) {
-    if (displayName.trim().isEmpty) {
-      showStyledPopup(
-        context: context,
-        title: "Display Name Empty",
-        message:
-            "Please enter a display name before continuing.",
-      );
-      return;
-    }
-
-  }
-
-  
-
-  // Continue to next slide
-  if (currentSlide < 5) {
-    setState(() {
-      currentSlide++;
-    });
-  }
-}
-
-
-  Future<void> handleFinish() async {
-    const int displayNameMaxLength = 12;
-  // ✅ Validate display name
-  if (displayName.trim().isEmpty) {
-    showStyledPopup(
-      context: context,
-      title: "Display Name Empty",
-      message: "Please enter a display name before continuing.",
-    );
-    return;
-  }
-
-    if (displayName.trim().length > displayNameMaxLength) {
-    showStyledPopup(
-      context: context,
-      title: "Display Name Too Long",
-      message: "Display name must be $displayNameMaxLength characters or less.",
-    );
-    return;
-  }
-
-  if (RegExp(r'^[0-9]+$').hasMatch(displayName.trim())) {
-    showStyledPopup(
-      context: context,
-      title: "Invalid Display Name",
-      message: "Display name cannot contain only numbers. Please include letters.",
-    );
-    return;
-  }
-
-  // ✅ Validate allowance exists
-  if (monthlyAllowance.trim().isEmpty) {
-    showStyledPopup(
-      context: context,
-      title: "Allowance Empty",
-      message: "Please enter your monthly allowance before continuing.",
-    );
-    return;
-  }
-
-  // ✅ Validate allowance is a valid number
-  final allowanceNum = double.tryParse(monthlyAllowance.trim());
-  if (allowanceNum == null) {
-    showStyledPopup(
-      context: context,
-      title: "Invalid Allowance",
-      message: "Please enter a valid number for your monthly allowance.",
-    );
-    return;
-  }
-
-  // ✅ Optional: Check if allowance is positive
-  if (allowanceNum <= 0) {
-    showStyledPopup(
-      context: context,
-      title: "Invalid Allowance",
-      message: "Please enter a positive amount for your monthly allowance.",
-    );
-    return;
-  }
-
-  // ✅ All validations passed, show confirmation dialog
-  showDialog(
-    context: context,
-    builder: (context) => LayoutBuilder(
-      builder: (context, constraints) {
-        return ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: constraints.maxWidth * 0.9,
-            minWidth: constraints.maxWidth * 0.9,
-          ),
-          child: AlertDialog(
-            backgroundColor: const Color(0xFFF5E6D3),
-            insetPadding: const EdgeInsets.symmetric(horizontal: 20),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: Color(0xFF6B4423), width: 3),
-            ),
-            contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  "assets/images/logo.png",
-                  height: 80,
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Confirm Your Choices',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Questrial',
-                    color: Color(0xFF6B4423),
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Are you sure of your pet choice and pet name? They cannot be changed until you further progress in game.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Questrial',
-                    color: Color(0xFF6B4423),
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-            actionsAlignment: MainAxisAlignment.center,
-            actionsPadding: const EdgeInsets.only(bottom: 15),
-            actions: [
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF5E6D3),
-                  foregroundColor: const Color(0xFF6B4423),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    side: const BorderSide(color: Color(0xFF6B4423), width: 2),
-                  ),
-                ),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(
-                    fontFamily: 'Questrial',
-                    fontSize: 16,
-                  ),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFADEC6),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+          child: Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(child: _buildSlideContent()),
                 ),
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.setBool('tutorial_completed', true);
-                  if (selectedPet.isNotEmpty) await prefs.setString('selected_pet', selectedPet);
-                  if (petName.isNotEmpty) await prefs.setString('pet_name', petName);
-                  if (displayName.isNotEmpty) await prefs.setString('display_name', displayName);
-                  await prefs.setString('user_type', userType);
-                  if (monthlyAllowance.isNotEmpty) {
-                    await prefs.setString('monthly_allowance', monthlyAllowance);
-                  }
-
-                  try {
-                    final user = Supabase.instance.client.auth.currentUser;
-                    if (user != null) {
-                      await Supabase.instance.client
-                          .from('users')
-                          .update({'tutorial_completed': true})
-                          .eq('id', user.id);
-                    }
-                  } catch (e) {
-                    debugPrint('Error updating Supabase tutorial_completed: $e');
-                  }
-
-                  if (!context.mounted) return;
-
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const DashboardPage()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6B4423),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
+              const SizedBox(height: 40),
+              Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      availableSlides.length,
+                      (index) => Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: index == currentSlideIndex
+                              ? const Color(0xFF6B4423)
+                              : Colors.transparent,
+                          border: Border.all(color: const Color(0xFF6B4423), width: 2),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: const Text(
-                  'Confirm',
-                  style: TextStyle(
-                    fontFamily: 'Questrial',
-                    fontSize: 16,
+                  const SizedBox(height: 28),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (currentSlideIndex > 0)
+                        ElevatedButton(
+                          onPressed: handleBack,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF5E6D3),
+                            foregroundColor: const Color(0xFF6B4423),
+                            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                              side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+                            ),
+                            elevation: 8,
+                            shadowColor: Colors.black.withAlpha(77),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.arrow_back, size: 24),
+                              SizedBox(width: 8),
+                              Text('Back', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w400, fontFamily: 'Questrial')),
+                            ],
+                          ),
+                        ),
+                      if (currentSlideIndex > 0) const SizedBox(width: 20),
+                        ElevatedButton(
+                          onPressed: currentSlideIndex == availableSlides.length - 1 
+                              ? handleFinish
+                              : handleNext,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6B4423),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            elevation: 8,
+                            shadowColor: Colors.black.withAlpha(77),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                currentSlideIndex == availableSlides.length - 1 ? 'Finish' : 'Next',
+                                style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w400,
+                                    fontFamily: 'Questrial'),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.arrow_forward, size: 24),
+                            ],
+                          ),
+                        ),
+
+                    ],
                   ),
-                ),
+                ],
               ),
             ],
           ),
-        );
-      },
-    ),
-  );
-}
-
-  // Replace the existing build method's button section with this:
-
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFFADEC6),
-    body: SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: Center(
-                child: SingleChildScrollView(child: _buildSlideContent()),
-              ),
-            ),
-            const SizedBox(height: 40),
-            Column(
-              children: [
-                // Progress dots on top
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(6, (index) {
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 6),
-                      width: 14,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: index == currentSlide
-                            ? const Color(0xFF6B4423)
-                            : Colors.transparent,
-                        border: Border.all(color: const Color(0xFF6B4423), width: 2),
-                      ),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 28),
-                // Back and Next buttons row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Back button (only show if not on first slide)
-                    if (currentSlide > 0)
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            currentSlide--;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFF5E6D3),
-                          foregroundColor: const Color(0xFF6B4423),
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
-                            side: const BorderSide(
-                              color: Color(0xFF6B4423),
-                              width: 3,
-                            ),
-                          ),
-                          elevation: 8,
-                          shadowColor: Colors.black.withAlpha(77),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.arrow_back, size: 24),
-                            SizedBox(width: 8),
-                            Text(
-                              'Back',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w400,
-                                fontFamily: 'Questrial',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    
-                    // Spacer between buttons
-                    if (currentSlide > 0) const SizedBox(width: 20),
-                    
-                    // Next/Finish button
-                    ElevatedButton(
-                      onPressed: currentSlide == 5 ? handleFinish : handleNext,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6B4423),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        elevation: 8,
-                        shadowColor: Colors.black.withAlpha(77),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            currentSlide == 5 ? 'Finish' : 'Next',
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: 'Questrial',
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward, size: 24),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
         ),
       ),
-    ),
-  );
-}
-
-  Widget _buildSlideContent() {
-    switch (currentSlide) {
-      case 0:
-        return _buildWelcomeSlide();
-      case 1:
-        return _buildChecklistSlide();
-      case 2:
-        return _buildChecklist2Slide();
-      case 3:
-        return _buildChoosePetSlide();
-      case 4:
-        return _buildNamePetSlide();
-      case 5:
-        return _buildAllowanceSlide();
-      default:
-        return Container();
-    }
+    );
   }
+
 
   Widget _buildWelcomeSlide() {
     return Column(
@@ -726,7 +612,7 @@ Widget _buildChecklist2Slide() {
             ),
           ],
         ),
-        const SizedBox(width: 16),
+        const SizedBox(height: 20),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -735,11 +621,11 @@ Widget _buildChecklist2Slide() {
             const SizedBox(width: 20),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.only(top: 0),
                 child: Text(
                   description,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 17,
                     color: Color(0xFF6B4423),
                     fontFamily: 'Questrial',
                   ),
