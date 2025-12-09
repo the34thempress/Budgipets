@@ -174,7 +174,7 @@ setState(() {});
             return ExpenseRewardPopup(
               streakDays: currentStreak,
               coinReward: 15,
-              evolutionTokens: 50,
+              budgimealCount: 1,
               amountDeducted: amount,
             );
           },
@@ -187,7 +187,7 @@ setState(() {});
             return IncomeRewardPopup(
               streakDays: currentStreak,
               coinReward: 15,
-              evolutionTokens: 50,
+              budgimealCount: 1,
               amountAdded: amount,
             );
           },

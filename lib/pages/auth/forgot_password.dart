@@ -112,8 +112,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 }
 
 
-  // Step 1: Send OTP to email
-  void _sendOTP() async {
+ // Step 1: Send OTP
+void _sendOTP() async {
   final email = _emailController.text.trim();
 
   if (email.isEmpty) {
@@ -138,7 +138,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   try {
     final supabase = Supabase.instance.client;
-
     await supabase.auth.signInWithOtp(email: email);
 
     setState(() {
@@ -152,145 +151,126 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       message: "Verification code sent to your email!",
     );
 
-  } catch (error) {
+  } catch (_) {
     setState(() => _isLoading = false);
-
     await showInfoPopup(
       context: context,
       title: "Error",
-      message: "Failed to send OTP. ${error.toString()}",
+      message: "Failed to send OTP. Please try again.",
     );
   }
 }
 
+// Step 2: Verify OTP
+void _verifyOTP() async {
+  final email = _emailController.text.trim();
+  final otp = _otpController.text.trim();
 
-  // Step 2: Verify OTP
-  void _verifyOTP() async {
-    final email = _emailController.text.trim();
-    final otp = _otpController.text.trim();
-
-    if (otp.isEmpty) {
-      await showInfoPopup(
-        context: context,
-        title: "OTP Empty",
-        message: "OTP field cannot be empty. Please enter the code sent to your email.",
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final supabase = Supabase.instance.client;
-      
-      // Verify OTP
-      await supabase.auth.verifyOTP(
-        email: email,
-        token: otp,
-        type: OtpType.email,
-      );
-
-      setState(() {
-        _isLoading = false;
-        _otpVerified = true;
-      });
-
-        await showInfoPopup(
-        context: context,
-        title: "Code Verified!",
-        message: "Now set your new password.",
-      );
-
-    } catch (error) {
-      setState(() {
-        _isLoading = false;
-      });
-      
-      await showInfoPopup(
-        context: context,
-        title: "Error Verifying OTP",
-        message: "Failed to verify OTP. ${error.toString()}",
-      );
-    }
+  if (otp.isEmpty) {
+    await showInfoPopup(
+      context: context,
+      title: "OTP Empty",
+      message: "OTP field cannot be empty. Please enter the code sent to your email.",
+    );
+    return;
   }
 
-  // Step 3: Update password
-  void _updatePassword() async {
-    final newPassword = _newPasswordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
+  setState(() => _isLoading = true);
 
-    if (newPassword.isEmpty || confirmPassword.isEmpty) {
-        await showInfoPopup(
-        context: context,
-        title: "Password Empty",
-        message: "Please fill in both password fields.",
-      );
-      return;
-    }
+  try {
+    final supabase = Supabase.instance.client;
 
-    if (newPassword.length < 6) {
-      await showInfoPopup(
-        context: context,
-        title: "Password Too Short",
-        message: "Password must be at least 6 characters long.",
-      );
-      return;
-    }
-
-    if (newPassword != confirmPassword) {
-      await showInfoPopup(
-        context: context,
-        title: "Password Mismatch",
-        message: "Passwords do not match. Please try again.",
-      );
-      return;
-    }
+    await supabase.auth.verifyOTP(
+      email: email,
+      token: otp,
+      type: OtpType.email,
+    );
 
     setState(() {
-      _isLoading = true;
+      _isLoading = false;
+      _otpVerified = true;
     });
 
-    try {
-      final supabase = Supabase.instance.client;
-      
-      // Update the user's password
-      await supabase.auth.updateUser(
-        UserAttributes(password: newPassword),
-      );
+    await showInfoPopup(
+      context: context,
+      title: "Code Verified!",
+      message: "Now set your new password.",
+    );
 
-      setState(() {
-        _isLoading = false;
-      });
-
-      await showInfoPopup(
-        context: context,
-        title: "Password Updated!",
-        message: "Your password has been successfully updated.",
-      );
-
-      // Sign out and go back to login
-      await supabase.auth.signOut();
-
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      });
-
-    } catch (error) {
-      setState(() {
-        _isLoading = false;
-      });
-      
-      await showInfoPopup(
-        context: context,
-        title: "Error Updating Password",
-        message: "Failed to update password. ${error.toString()}",
-      );
-    }
+  } catch (_) {
+    setState(() => _isLoading = false);
+    await showInfoPopup(
+      context: context,
+      title: "Error",
+      message: "Failed to verify OTP. Please try again.",
+    );
   }
+}
+
+// Step 3: Update password
+void _updatePassword() async {
+  final newPassword = _newPasswordController.text.trim();
+  final confirmPassword = _confirmPasswordController.text.trim();
+
+  if (newPassword.isEmpty || confirmPassword.isEmpty) {
+    await showInfoPopup(
+      context: context,
+      title: "Password Empty",
+      message: "Please fill in both password fields.",
+    );
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    await showInfoPopup(
+      context: context,
+      title: "Password Too Short",
+      message: "Password must be at least 6 characters long.",
+    );
+    return;
+  }
+
+  if (newPassword != confirmPassword) {
+    await showInfoPopup(
+      context: context,
+      title: "Password Mismatch",
+      message: "Passwords do not match. Please try again.",
+    );
+    return;
+  }
+
+  setState(() => _isLoading = true);
+
+  try {
+    final supabase = Supabase.instance.client;
+
+    await supabase.auth.updateUser(UserAttributes(password: newPassword));
+
+    setState(() => _isLoading = false);
+
+    await showInfoPopup(
+      context: context,
+      title: "Password Updated!",
+      message: "Your password has been successfully updated.",
+    );
+
+    // Sign out and go back to login
+    await supabase.auth.signOut();
+
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) Navigator.pop(context);
+    });
+
+  } catch (_) {
+    setState(() => _isLoading = false);
+    await showInfoPopup(
+      context: context,
+      title: "Error",
+      message: "Failed to update password. Please try again.",
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {

@@ -18,121 +18,204 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
   final Color darkBrown = const Color(0xFF5C2E14);
   final Color lightBrown = const Color(0xFFF4D6C1);
 
-  void _showConfirmationDialog() {
-    showDialog(
+  Future<void> showStyledPopup({
+    required BuildContext context,
+    required String title,
+    required String message,
+    Widget? customContent, // optional for custom buttons/content
+  }) async {
+    return showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          backgroundColor: lightBrown,
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  size: 60,
-                  color: darkBrown,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Delete Account?',
-                  style: TextStyle(
-                    fontFamily: 'Questrial',
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: darkBrown,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Are you absolutely sure you want to delete your account? This action cannot be undone.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Questrial',
-                    fontSize: 16,
-                    color: darkBrown,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      builder: (context) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final maxWidth = (constraints.maxWidth * 0.9).clamp(0, 500.0) as double;
+
+            return AlertDialog(
+              backgroundColor: const Color(0xFFFDE6D0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+              ),
+              contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+              content: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Cancel button
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Color(0xFF8A4A1F),
-                            borderRadius: BorderRadius.circular(25),
+                    // Logo
+                    Image.asset(
+                      'assets/images/logo.png',
+                      height: 70,
+                    ),
+                    const SizedBox(height: 15),
+                    // Title
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'Questrial',
+                        color: Color(0xFF6B4423),
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Message
+                    Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'Questrial',
+                        color: Color(0xFF6B4423),
+                        fontSize: 16,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+                    // Custom content (buttons)
+                    if (customContent != null) customContent,
+                    if (customContent == null)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6B4423),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
                           ),
-                          child: const Center(
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(
-                                fontFamily: 'Questrial',
-                                color: Colors.white,
-                                fontSize: 16,
-                              ),
+                          child: const Text(
+                            'OK',
+                            style: TextStyle(
+                              fontFamily: 'Questrial',
+                              fontSize: 16,
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Delete button
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          Navigator.pushReplacementNamed(context, '/login');
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Color(0xFF8A4A1F),
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'Delete',
-                              style: TextStyle(
-                                fontFamily: 'Questrial',
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    const SizedBox(height: 10),
                   ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
+  void _showConfirmationDialog() {
+  showStyledPopup(
+    context: context,
+    title: 'Delete Account?',
+    message: 'Are you absolutely sure you want to delete your account? This action cannot be undone.',
+    customContent: Column(
+      children: [
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6B4423),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontFamily: 'Questrial',
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context); // close popup
+                  Navigator.pushReplacementNamed(context, '/login'); // delete account action
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6B4423),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Delete',
+                      style: TextStyle(
+                        fontFamily: 'Questrial',
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+      ],
+    ),
+  );
+}
+
+
   void _deleteAccount() {
+      // Check if password is empty
+      ScaffoldMessenger.of(context).clearSnackBars();
+  if (_passwordController.text.trim().isEmpty) {
+    showStyledPopup(
+      context: context,
+      title: 'Error',
+      message: 'Password cannot be empty!',
+    );
+    return;
+  }
+
+  // Check if pet name is empty
+  if (_petNameController.text.trim().isEmpty) {
+    showStyledPopup(
+      context: context,
+      title: 'Error',
+      message: 'Pet name cannot be empty!',
+    );
+    return;
+  }
+
     // Verify password
     if (_passwordController.text.trim() != _correctPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Incorrect password!')),
+      showStyledPopup(
+        context: context,
+        title: 'Error',
+        message: 'Incorrect password!',
       );
       return;
     }
 
     // Verify pet name
     if (_petNameController.text.trim().toLowerCase() != _correctPetName.toLowerCase()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Incorrect pet name!')),
+      showStyledPopup(
+        context: context,
+        title: 'Error',
+        message: 'Incorrect pet name!',
       );
       return;
     }
@@ -151,7 +234,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
         iconTheme: IconThemeData(color: lightBrown),
         title: Text(
           'Delete Account',
-          style: TextStyle(fontFamily: 'Modak', fontSize: 28, color: Color(0xFFFDE6D0)),
+          style: TextStyle(fontFamily: 'Modak', fontSize: 28, color: Colors.white),
         ),
       ),
       body: Center(
@@ -165,8 +248,6 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                 height: 200,
               ),
               SizedBox(height: 25),
-
-              // Warning message
               Container(
                 padding: EdgeInsets.all(18),
                 decoration: BoxDecoration(
@@ -216,7 +297,6 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                 ),
               ),
               SizedBox(height: 25),
-
               _passwordField(
                 controller: _passwordController,
                 label: 'Enter Password',
@@ -224,14 +304,11 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                 onToggle: () => setState(() => _passwordVisible = !_passwordVisible),
               ),
               SizedBox(height: 20),
-
               _textField(
                 controller: _petNameController,
                 label: 'Enter Pet Name',
               ),
-
               SizedBox(height: 35),
-
               GestureDetector(
                 onTap: _deleteAccount,
                 child: Container(

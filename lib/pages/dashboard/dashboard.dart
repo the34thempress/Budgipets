@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:budgipets/pages/dashboard/set_budget_dialog.dart';
 import 'package:budgipets/controllers/audio_manager.dart';
 import 'package:budgipets/widgets/profilecard.dart';
+import 'package:budgipets/screens/tutorial_screens/tutorial.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -46,12 +47,12 @@ class _DashboardPageState extends State<DashboardPage> {
   bool _loadingCoins = true;
 
   @override
-  void initState() {
-    super.initState();
-    _loadOrCreateBudget();
-    _audioService.playMusic();
-    _loadCoins();
-  }
+void initState() {
+  super.initState();
+  _loadOrCreateBudget();
+  _audioService.initMusic(); // Changed from playMusic() to initMusic()
+  _loadCoins();
+}
 
   @override
   void dispose() {
@@ -391,7 +392,7 @@ Widget _buildTopBarEmptyWithAvatar() {
                     horizontal: 16,
                     vertical: 24,
                   ),
-                  child: const BudgetProfileCard(),  // <-- FIXED
+                  child: const BudgetProfileCard(),
                 );
               },
             );
@@ -406,42 +407,72 @@ Widget _buildTopBarEmptyWithAvatar() {
           ),
         ),
 
-        // 🪙 COINS WITH CONTAINER ON THE RIGHT
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF3E1D01), width: 1),
-          ),
-          child: Row(
-            children: [
-              Image.asset(
-                'assets/images/coin.png',
-                width: 26,
-                height: 26,
+        // 🪙 COINS WITH QUESTION MARK BUTTON
+        Row(
+          children: [
+            // ❓ QUESTION MARK BUTTON
+            GestureDetector(
+              onTap: () {
+                // Navigate to TutorialScreen when pressed
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TutorialScreen()),
+                );
+              },
+              child: Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF3E1D01), width: 1),
+                ),
+                child: const Icon(
+                  Icons.help_outline,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
-              const SizedBox(width: 4),
-              _loadingCoins
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(
-                      '$_coins',
-                      style: const TextStyle(
-                        fontFamily: 'Questrial',
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-            ],
-          ),
+            ),
+
+            // 🪙 COINS CONTAINER
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF3E1D01), width: 1),
+              ),
+              child: Row(
+                children: [
+                  Image.asset(
+                    'assets/images/coin.png',
+                    width: 26,
+                    height: 26,
+                  ),
+                  const SizedBox(width: 4),
+                  _loadingCoins
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          '$_coins',
+                          style: const TextStyle(
+                            fontFamily: 'Questrial',
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     ),
@@ -607,7 +638,7 @@ Widget _buildTopBarEmptyWithAvatar() {
                       Column(
                         children: const [
                           Text(
-                            "0",
+                            "34",
                             style: TextStyle(
                               fontFamily: "PixelifySans",
                               fontSize: 90,
@@ -627,7 +658,7 @@ Widget _buildTopBarEmptyWithAvatar() {
                       ),
                       const SizedBox(width: 15),
                       Image.asset(
-                        "assets/images/dog_egg.png",
+                        "assets/images/dog.png",
                         height: 140,
                       ),
                     ],
