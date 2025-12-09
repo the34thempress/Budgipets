@@ -43,7 +43,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
     final prefs = await SharedPreferences.getInstance();
 
     // Always include checklist slides
-    availableSlides = [1, 2];
+    availableSlides = [0, 1, 2];
 
     // Only include slides if values not yet set
     if ((prefs.getString('selected_pet') ?? '').isEmpty) availableSlides.add(3);
