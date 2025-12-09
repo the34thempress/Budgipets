@@ -20,6 +20,9 @@ class _SetBudgetDialogState extends State<SetBudgetDialog> {
   final TextEditingController _passwordController = TextEditingController();
   bool _saving = false;
 
+  // 👁️ Password visibility toggle
+  bool _passwordVisible = false;
+
   @override
   void dispose() {
     _newBudgetController.dispose();
@@ -179,9 +182,11 @@ class _SetBudgetDialogState extends State<SetBudgetDialog> {
                 ),
               ),
               const SizedBox(height: 6),
+
+              // 🔐 Password Field with Eye Toggle
               TextField(
                 controller: _passwordController,
-                obscureText: true,
+                obscureText: !_passwordVisible,
                 style: const TextStyle(color: Color(0xFF2C1400)),
                 decoration: InputDecoration(
                   filled: true,
@@ -189,60 +194,102 @@ class _SetBudgetDialogState extends State<SetBudgetDialog> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                      color: const Color(0xFF3D1E0A),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _passwordVisible = !_passwordVisible;
+                      });
+                    },
+                  ),
                 ),
               ),
 
               const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3D1E0A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  onPressed: _saving
-                      ? null
-                      : () async {
-                          final newBudget =
-                              num.tryParse(_newBudgetController.text.trim());
-                          final password = _passwordController.text.trim();
 
-                          if (newBudget == null || password.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content:
-                                    Text('Please fill out all fields properly'),
-                              ),
-                            );
-                            return;
-                          }
+              // 🔘 Cancel + Done Buttons
+Row(
+  children: [
+    // CANCEL BUTTON
+    Expanded(
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF7A5434),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+        onPressed: () => Navigator.pop(context),
+        child: const Text(
+          "Cancel",
+          style: TextStyle(
+            fontFamily: "Questrial",
+            fontSize: 18,
+            color: Color(0xFFFADEC6),
+          ),
+        ),
+      ),
+    ),
 
-                          setState(() => _saving = true);
-                          try {
-                            await widget.onSave(newBudget, password);
-                            if (mounted) Navigator.pop(context);
-                          } catch (e) {
-                            if (mounted) {
-                              await _showErrorDialog(
-                                  "Incorrect password. Please try again.");
-                            }
-                          } finally {
-                            if (mounted) setState(() => _saving = false);
-                          }
-                        },
-                  child: Text(
-                    _saving ? "Saving..." : "Done",
-                    style: const TextStyle(
-                      fontFamily: "Questrial",
-                      fontSize: 18,
-                      color: Color(0xFFFADEC6),
+    const SizedBox(width: 12),
+
+    // DONE BUTTON
+    Expanded(
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF3D1E0A),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+        onPressed: _saving
+            ? null
+            : () async {
+                final newBudget =
+                    num.tryParse(_newBudgetController.text.trim());
+                final password = _passwordController.text.trim();
+
+                if (newBudget == null || password.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please fill out all fields properly'),
                     ),
-                  ),
-                ),
-              ),
+                  );
+                  return;
+                }
+
+                setState(() => _saving = true);
+
+                try {
+                  await widget.onSave(newBudget, password);
+                  if (mounted) Navigator.pop(context);
+                } catch (e) {
+                  if (mounted) {
+                    await _showErrorDialog(
+                        "Incorrect password. Please try again.");
+                  }
+                } finally {
+                  if (mounted) setState(() => _saving = false);
+                }
+              },
+        child: Text(
+          _saving ? "Saving..." : "Done",
+          style: const TextStyle(
+            fontFamily: "Questrial",
+            fontSize: 18,
+            color: Color(0xFFFADEC6),
+          ),
+        ),
+      ),
+    ),
+  ],
+)
+
             ],
           ),
         ),

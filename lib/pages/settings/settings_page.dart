@@ -19,13 +19,25 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final AudioService _audioManager = AudioService();
 
-  late bool _musicOn;
+  bool _musicOn = false;
   bool _notificationsOn = true;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _musicOn = _audioManager.isPlaying;
+    _loadMusicState();
+  }
+
+  // Load the music state asynchronously
+  Future<void> _loadMusicState() async {
+    // Give the audio manager time to load preferences
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (!mounted) return;
+    setState(() {
+      _musicOn = _audioManager.isPlaying;
+      _loading = false;
+    });
   }
 
   @override
@@ -65,16 +77,19 @@ class _SettingsPageState extends State<SettingsPage> {
 
           const SizedBox(height: 8),
 
-          _settingsToggleRow(
-            label: "Music",
-            value: _musicOn,
-            onChanged: (val) async {
-              await _audioManager.toggleMusic();
-              setState(() {
-                _musicOn = _audioManager.isPlaying;
-              });
-            },
-          ),
+          // Show loading indicator while loading music state
+          _loading
+              ? _settingsLoadingRow(label: "Music")
+              : _settingsToggleRow(
+                  label: "Music",
+                  value: _musicOn,
+                  onChanged: (val) async {
+                    await _audioManager.toggleMusic();
+                    setState(() {
+                      _musicOn = _audioManager.isPlaying;
+                    });
+                  },
+                ),
 
           _settingsToggleRow(
             label: "Notifications",
@@ -90,30 +105,30 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 8),
 
           _settingsButton(
-          context,
-          "Log out",
-          onTap: () async {
-            if (!mounted) return;
+            context,
+            "Log out",
+            onTap: () async {
+              if (!mounted) return;
 
-            setState(() {}); // optional: keep UI update consistent; remove if you don't want
+              setState(() {}); // optional: keep UI update consistent
 
-            try {
-              // sign out from Supabase
-              await Supabase.instance.client.auth.signOut();
-            } catch (e) {
-              // show an error but still attempt to navigate to login
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Sign out failed: $e')),
+              try {
+                // sign out from Supabase
+                await Supabase.instance.client.auth.signOut();
+              } catch (e) {
+                // show an error but still attempt to navigate to login
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Sign out failed: $e')),
+                );
+              }
+
+              // navigate to login and remove previous routes
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+                (route) => false,
               );
-            }
-
-            // navigate to login and remove previous routes
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const LoginPage()),
-              (route) => false,
-            );
-          },
-        ),
+            },
+          ),
 
           const SizedBox(height: 16),
 
@@ -121,7 +136,7 @@ class _SettingsPageState extends State<SettingsPage> {
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[700],
+                backgroundColor: Color(0xFF720607),
                 minimumSize: const Size.fromHeight(50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -221,12 +236,48 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
-
             Switch.adaptive(
               value: value,
               onChanged: onChanged,
-              activeColor: Colors.white,
-              activeTrackColor: Colors.greenAccent,
+              activeColor: Color.fromARGB(255, 134, 76, 1),
+              activeTrackColor: Color(0xFFC57000),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Loading state widget for music toggle
+  Widget _settingsLoadingRow({required String label}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF5C2E14),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontFamily: "Questrial",
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
             ),
           ],
         ),

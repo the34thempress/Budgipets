@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 class ExpenseRewardPopup extends StatelessWidget {
   final int streakDays;
   final int coinReward;
-  final int evolutionTokens;
+  final int budgimealCount; // new parameter
   final double amountDeducted;
 
   const ExpenseRewardPopup({
     Key? key,
     required this.streakDays,
     required this.coinReward,
-    required this.evolutionTokens,
+    required this.budgimealCount,
     required this.amountDeducted,
   }) : super(key: key);
 
@@ -34,7 +34,6 @@ class ExpenseRewardPopup extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // "Logged Successfully!" title
             const Text(
               'Logged\nSuccessfully!',
               style: TextStyle(
@@ -53,8 +52,6 @@ class ExpenseRewardPopup extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            
-            // Streak message
             Text(
               'You\'ve maintained a $streakDays day streak! Keep it up Budgeteer! Here\'s your daily reward!',
               style: const TextStyle(
@@ -65,8 +62,6 @@ class ExpenseRewardPopup extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            
-            // Deduction message
             Text(
               '₱${amountDeducted.toStringAsFixed(2)} has been deducted from your balance.',
               style: const TextStyle(
@@ -78,8 +73,6 @@ class ExpenseRewardPopup extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 5),
-            
-            // Rewards row
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -100,16 +93,15 @@ class ExpenseRewardPopup extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 32),
-                
-                // Evolution token reward
+                // Budgimeal reward
                 Image.asset(
-                  'assets/images/evolution_token.png',
+                  'assets/images/budgimeal.png',
                   width: 50,
                   height: 50,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '$evolutionTokens',
+                  '$budgimealCount',
                   style: const TextStyle(
                     fontSize: 40,
                     color: Colors.white,
@@ -118,8 +110,7 @@ class ExpenseRewardPopup extends StatelessWidget {
                   ),
                 ),
               ],
-            ),     
-            // Close button
+            ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text(
@@ -141,14 +132,14 @@ class ExpenseRewardPopup extends StatelessWidget {
 class IncomeRewardPopup extends StatelessWidget {
   final int streakDays;
   final int coinReward;
-  final int evolutionTokens;
+  final int budgimealCount; // new parameter
   final double amountAdded;
 
   const IncomeRewardPopup({
     Key? key,
     required this.streakDays,
     required this.coinReward,
-    required this.evolutionTokens,
+    required this.budgimealCount,
     required this.amountAdded,
   }) : super(key: key);
 
@@ -172,7 +163,6 @@ class IncomeRewardPopup extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // "Logged Successfully!" title
             const Text(
               'Logged\nSuccessfully!',
               style: TextStyle(
@@ -191,8 +181,6 @@ class IncomeRewardPopup extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            
-            // Streak message
             Text(
               'You\'ve maintained a $streakDays day streak! Keep it up Budgeteer! Here\'s your daily reward!',
               style: const TextStyle(
@@ -203,25 +191,20 @@ class IncomeRewardPopup extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            
-            // Addition message
             Text(
               '₱${amountAdded.toStringAsFixed(2)} has been added to your balance.',
               style: const TextStyle(
                 fontSize: 14,
-                color: Color(0xFFF5DEB3), // Light green color
+                color: Color(0xFFF5DEB3),
                 fontFamily: 'Questrial',
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
             ),
-
-           const SizedBox(height: 5),
-           
+            const SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Coin reward
                 Image.asset(
                   'assets/images/coin.png',
                   width: 45,
@@ -238,16 +221,15 @@ class IncomeRewardPopup extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 32),
-                
-                // Evolution token reward
+                // Budgimeal reward
                 Image.asset(
-                  'assets/images/evolution_token.png',
+                  'assets/images/budgimeal.png',
                   width: 50,
                   height: 50,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '$evolutionTokens',
+                  '$budgimealCount',
                   style: const TextStyle(
                     fontSize: 40,
                     color: Colors.white,
@@ -257,8 +239,6 @@ class IncomeRewardPopup extends StatelessWidget {
                 ),
               ],
             ),
-            
-            // Close button
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text(

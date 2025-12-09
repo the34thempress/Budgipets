@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'create_account.dart';
 import 'forgot_password.dart';
 import '../dashboard/dashboard.dart';
-import '../../screens/tutorial_screens/tutorial.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatelessWidget {
@@ -36,119 +35,95 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _passwordVisible = false;
 
-  // ✅ Check if user has completed tutorial from Supabase database
-  Future<bool> _hasCompletedTutorial(String userId) async {
-    try {
-      final supabase = Supabase.instance.client;
-      
-      // Query the users table for tutorial_completed status
-      final response = await supabase
-          .from('users')
-          .select('tutorial_completed')
-          .eq('id', userId)
-          .single();
-      
-      // Return tutorial_completed value, default to false if null
-      return response['tutorial_completed'] ?? false;
-    } catch (e) {
-      // If there's an error or user not found, assume tutorial not completed
-      debugPrint('Error checking tutorial status: $e');
-      return false;
-    }
-  }
-  
-Future<void> showLoginPopup({
-  required BuildContext context,
-  required String title,
-  required String message,
-}) {
-  return showDialog<void>(
-    context: context,
-    builder: (context) {
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final double maxWidth = constraints.maxWidth - 40;
+  Future<void> showLoginPopup({
+    required BuildContext context,
+    required String title,
+    required String message,
+  }) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final double maxWidth = constraints.maxWidth - 40;
 
-          return Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: AlertDialog(
-                insetPadding: EdgeInsets.zero, // << THE IMPORTANT FIX
-                backgroundColor: const Color(0xFFF5E6D3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  side: const BorderSide(color: Color(0xFF6B4423), width: 3),
-                ),
-                contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
-
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/logo.png',
-                      height: 70,
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontFamily: 'Questrial',
-                        color: Color(0xFF6B4423),
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: AlertDialog(
+                  insetPadding: EdgeInsets.zero,
+                  backgroundColor: const Color(0xFFF5E6D3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+                  ),
+                  contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/logo.png',
+                        height: 70,
+                        fit: BoxFit.contain,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      message,
-                      style: const TextStyle(
-                        fontFamily: 'Questrial',
-                        color: Color(0xFF6B4423),
-                        fontSize: 16,
-                        height: 1.5,
+                      const SizedBox(height: 16),
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontFamily: 'Questrial',
+                          color: Color(0xFF6B4423),
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
+                      const SizedBox(height: 12),
+                      Text(
+                        message,
+                        style: const TextStyle(
+                          fontFamily: 'Questrial',
+                          color: Color(0xFF6B4423),
+                          fontSize: 16,
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  actionsAlignment: MainAxisAlignment.center,
+                  actions: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6B4423),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'OKAY',
+                          style: TextStyle(
+                            fontFamily: 'Questrial',
+                            color: Color(0xFFFFE8C7),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-
-                actionsAlignment: MainAxisAlignment.center,
-                actions: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6B4423),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'OKAY',
-                        style: TextStyle(
-                          fontFamily: 'Questrial',
-                          color: Color(0xFFFFE8C7),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
               ),
-            ),
-          );
-        },
-      );
-    },
-  );
-}
-
+            );
+          },
+        );
+      },
+    );
+  }
 
   // Login function
   void _login() async {
@@ -157,12 +132,11 @@ Future<void> showLoginPopup({
 
     if (email.isEmpty || password.isEmpty) {
       if (!mounted) return;
-          await showLoginPopup(
-              context: context,
-              title: 'Login Error',
-              message: 'Please enter both email and password',
-            );
-
+      await showLoginPopup(
+        context: context,
+        title: 'Login Error',
+        message: 'Please enter both email and password.',
+      );
       return;
     }
 
@@ -176,54 +150,38 @@ Future<void> showLoginPopup({
       final user = response.user;
 
       if (user != null) {
-        // Check if email is verified
         if (user.emailConfirmedAt == null) {
           await supabase.auth.signOut();
           if (!mounted) return;
           await showLoginPopup(
-              context: context,
-              title: 'Login Error',
-              message: 'Please verify your email before logging in.',
-            );
-
+            context: context,
+            title: 'Login Error',
+            message: 'Please verify your email before logging in.',
+          );
           return;
         }
 
-        // ✅ Check if user has completed tutorial from database
-        final hasCompletedTutorial = await _hasCompletedTutorial(user.id);
-
         if (!mounted) return;
-
-        if (hasCompletedTutorial) {
-          // Go to dashboard if tutorial is completed
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const DashboardPage()),
-          );
-        } else {
-          // Go to tutorial if not completed
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const TutorialScreen()),
-          );
-        }
+        // Navigate directly to dashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardPage()),
+        );
       } else {
         if (!mounted) return;
-          await showLoginPopup(
-              context: context,
-              title: 'Login Error',
-              message: 'Invalid email or password',
-            );
-
+        await showLoginPopup(
+          context: context,
+          title: 'Login Error',
+          message: 'Invalid email or password. Please try again.',
+        );
       }
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
-          await showLoginPopup(
-              context: context,
-              title: 'Login Error',
-              message: 'Error: ${error.toString()}',
-            );
-
+      await showLoginPopup(
+        context: context,
+        title: 'Login Error',
+        message: 'Something went wrong. Please try again.',
+      );
     }
   }
 
@@ -238,14 +196,11 @@ Future<void> showLoginPopup({
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 60),
-              // Logo              
               Image.asset(
                 "assets/images/logo.png",
                 height: 130,
               ),
               const SizedBox(height: 30),
-
-              // Instruction text
               const Text(
                 "Enter Your Credentials\nto proceed",
                 textAlign: TextAlign.center,
@@ -255,8 +210,6 @@ Future<void> showLoginPopup({
                 ),
               ),
               const SizedBox(height: 40),
-
-              // Username field
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -277,8 +230,6 @@ Future<void> showLoginPopup({
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Password field with visibility toggle
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -298,17 +249,18 @@ Future<void> showLoginPopup({
                     contentPadding: const EdgeInsets.symmetric(vertical: 16),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                        _passwordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                         color: const Color(0xFF4A2C1A),
                       ),
-                      onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
+                      onPressed: () =>
+                          setState(() => _passwordVisible = !_passwordVisible),
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 30),
-
-              // Sign In button
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -330,8 +282,6 @@ Future<void> showLoginPopup({
                 ),
               ),
               const SizedBox(height: 30),
-
-              // Sign up link
               GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -350,8 +300,6 @@ Future<void> showLoginPopup({
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Divider
               const Row(
                 children: [
                   Expanded(
@@ -373,8 +321,6 @@ Future<void> showLoginPopup({
                 ],
               ),
               const SizedBox(height: 20),
-
-              // Forgot Password link
               GestureDetector(
                 onTap: () {
                   Navigator.pushNamed(context, 'forgot_password');

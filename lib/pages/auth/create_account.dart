@@ -112,71 +112,64 @@ Future<void> showAccountPopup({
   );
 }
 
-
-
-
-
   Future<void> _signUp() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-    final username = _usernameController.text.trim();
+  final email = _emailController.text.trim();
+  final password = _passwordController.text.trim();
+  final username = _usernameController.text.trim();
 
-    if (email.isEmpty || password.isEmpty || username.isEmpty) {
+  if (email.isEmpty || password.isEmpty || username.isEmpty) {
+    await showAccountPopup(
+      context: context,
+      title: 'Missing Information',
+      message: 'Please fill in all fields',
+    );
+    return;
+  }
+
+  setState(() => _isLoading = true);
+
+  try {
+    final supabase = Supabase.instance.client;
+
+    final response = await supabase.auth.signUp(
+      email: email,
+      password: password,
+      data: {'username': username},
+    );
+
+    if (response.user != null) {
       await showAccountPopup(
         context: context,
-        title: 'Missing Information',
-        message: 'Please fill in all fields',
-);
-
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      final supabase = Supabase.instance.client;
-
-      final response = await supabase.auth.signUp(
-        email: email,
-        password: password,
-        data: {'username': username},
+        title: 'Success',
+        message: 'Account created! Please verify your email before logging in.',
       );
 
-      if (response.user != null) {
-        await showAccountPopup(
-            context: context,
-            title: 'Success',
-            message: 'Account created! Please verify your email before logging in.',
-          );
-
-
-        await Future.delayed(const Duration(seconds: 2));
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginPage()),
-          );
-        }
-      }
-      else {
-        await showAccountPopup(
-          context: context,
-          title: 'Sign-up Failed',
-          message: 'Sign-up failed. Try again.',
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
         );
-
       }
-    } catch (e) {
-        await showAccountPopup(
-          context: context,
-          title: 'Error',
-          message: e.toString(),
-        );
-
-    } finally {
-      setState(() => _isLoading = false);
+    } else {
+      await showAccountPopup(
+        context: context,
+        title: 'Sign-up Failed',
+        message: 'Sign-up failed. Please try again.',
+      );
     }
+  } catch (_) {
+    // Simplified generic error for all exceptions
+    await showAccountPopup(
+      context: context,
+      title: 'Error',
+      message: 'Something went wrong. Please try again.',
+    );
+  } finally {
+    setState(() => _isLoading = false);
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

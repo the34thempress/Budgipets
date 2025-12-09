@@ -179,6 +179,8 @@ const int petNameMaxLength = 12;
 
   }
 
+  
+
   // Continue to next slide
   if (currentSlide < 5) {
     setState(() {
@@ -189,204 +191,193 @@ const int petNameMaxLength = 12;
 
 
   Future<void> handleFinish() async {
-
     const int displayNameMaxLength = 12;
+  // ✅ Validate display name
+  if (displayName.trim().isEmpty) {
+    showStyledPopup(
+      context: context,
+      title: "Display Name Empty",
+      message: "Please enter a display name before continuing.",
+    );
+    return;
+  }
 
-      if (displayName.trim().length > displayNameMaxLength) {
-      showStyledPopup(
-        context: context,
-        title: "Name Too Long",
-        message:
-            "Your display name is too long. Please limit it to $displayNameMaxLength characters.",
-      );
-      return;
-    }
+    if (displayName.trim().length > displayNameMaxLength) {
+    showStyledPopup(
+      context: context,
+      title: "Display Name Too Long",
+      message: "Display name must be $displayNameMaxLength characters or less.",
+    );
+    return;
+  }
 
-            if (displayName.trim().isEmpty) {
-          showStyledPopup(
-  context: context,
-  title: "Display Name Empty",
-  message: "Please enter your display name.",
-);
-          return;
-        }
+  if (RegExp(r'^[0-9]+$').hasMatch(displayName.trim())) {
+    showStyledPopup(
+      context: context,
+      title: "Invalid Display Name",
+      message: "Display name cannot contain only numbers. Please include letters.",
+    );
+    return;
+  }
 
-        if (monthlyAllowance.trim().isEmpty) {
-          showStyledPopup(
-  context: context,
-  title: "Monthly Allowance Empty",
-  message: "Please enter your monthly allowance.",
-);
+  // ✅ Validate allowance exists
+  if (monthlyAllowance.trim().isEmpty) {
+    showStyledPopup(
+      context: context,
+      title: "Allowance Empty",
+      message: "Please enter your monthly allowance before continuing.",
+    );
+    return;
+  }
 
-if (monthlyAllowance.trim().isEmpty) {
-  showStyledPopup(
+  // ✅ Validate allowance is a valid number
+  final allowanceNum = double.tryParse(monthlyAllowance.trim());
+  if (allowanceNum == null) {
+    showStyledPopup(
+      context: context,
+      title: "Invalid Allowance",
+      message: "Please enter a valid number for your monthly allowance.",
+    );
+    return;
+  }
+
+  // ✅ Optional: Check if allowance is positive
+  if (allowanceNum <= 0) {
+    showStyledPopup(
+      context: context,
+      title: "Invalid Allowance",
+      message: "Please enter a positive amount for your monthly allowance.",
+    );
+    return;
+  }
+
+  // ✅ All validations passed, show confirmation dialog
+  showDialog(
     context: context,
-    title: "Monthly Allowance Empty",
-    message: "Please enter your monthly allowance.",
-  );
-  return;
-}
-
-// Check if the input contains only numbers (and optional decimal point)
-if (!RegExp(r'^\d+\.?\d*$').hasMatch(monthlyAllowance.trim())) {
-  showStyledPopup(
-    context: context,
-    title: "Invalid Input",
-    message: "Please enter a valid number for your monthly allowance.",
-  );
-  return;
-}
-
-// Optional: Check if the value is greater than 0
-double? allowanceValue = double.tryParse(monthlyAllowance.trim());
-if (allowanceValue == null || allowanceValue <= 0) {
-  showStyledPopup(
-    context: context,
-    title: "Invalid Amount",
-    message: "Please enter an amount greater than 0.",
-  );
-  return;
-}
-          return;
-        }
-showDialog(
-  context: context,
-  builder: (context) => LayoutBuilder(
-    builder: (context, constraints) {
-      return ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: constraints.maxWidth * 0.9, // Make popup wide
-          minWidth: constraints.maxWidth * 0.9,
-        ),
-        child: AlertDialog(
-          backgroundColor: const Color(0xFFF5E6D3),
-          insetPadding: const EdgeInsets.symmetric(horizontal: 20),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+    builder: (context) => LayoutBuilder(
+      builder: (context, constraints) {
+        return ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: constraints.maxWidth * 0.9,
+            minWidth: constraints.maxWidth * 0.9,
           ),
-
-          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
-
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // ⭐ LOGO ON TOP
-              Image.asset(
-                "assets/images/logo.png",
-                height: 80,
-              ),
-              const SizedBox(height: 10),
-
-              // ⭐ TITLE
-              const Text(
-                'Confirm Your Choices',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Questrial',
-                  color: Color(0xFF6B4423),
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
+          child: AlertDialog(
+            backgroundColor: const Color(0xFFF5E6D3),
+            insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+            ),
+            contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  "assets/images/logo.png",
+                  height: 80,
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Confirm Your Choices',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Questrial',
+                    color: Color(0xFF6B4423),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Are you sure of your pet choice and pet name? They cannot be changed until you further progress in game.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Questrial',
+                    color: Color(0xFF6B4423),
+                    fontSize: 16,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actionsPadding: const EdgeInsets.only(bottom: 15),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF5E6D3),
+                  foregroundColor: const Color(0xFF6B4423),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                    side: const BorderSide(color: Color(0xFF6B4423), width: 2),
+                  ),
+                ),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(
+                    fontFamily: 'Questrial',
+                    fontSize: 16,
+                  ),
                 ),
               ),
-              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('tutorial_completed', true);
+                  if (selectedPet.isNotEmpty) await prefs.setString('selected_pet', selectedPet);
+                  if (petName.isNotEmpty) await prefs.setString('pet_name', petName);
+                  if (displayName.isNotEmpty) await prefs.setString('display_name', displayName);
+                  await prefs.setString('user_type', userType);
+                  if (monthlyAllowance.isNotEmpty) {
+                    await prefs.setString('monthly_allowance', monthlyAllowance);
+                  }
 
-              // ⭐ MESSAGE
-              const Text(
-                'Are you sure of your pet choice and pet name? They cannot be changed until you further progress in game.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Questrial',
-                  color: Color(0xFF6B4423),
-                  fontSize: 16,
-                  height: 1.5,
+                  try {
+                    final user = Supabase.instance.client.auth.currentUser;
+                    if (user != null) {
+                      await Supabase.instance.client
+                          .from('users')
+                          .update({'tutorial_completed': true})
+                          .eq('id', user.id);
+                    }
+                  } catch (e) {
+                    debugPrint('Error updating Supabase tutorial_completed: $e');
+                  }
+
+                  if (!context.mounted) return;
+
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DashboardPage()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6B4423),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+                child: const Text(
+                  'Confirm',
+                  style: TextStyle(
+                    fontFamily: 'Questrial',
+                    fontSize: 16,
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
             ],
           ),
-
-          actionsAlignment: MainAxisAlignment.center,
-          actionsPadding: const EdgeInsets.only(bottom: 15),
-
-          actions: [
-            // ❌ CANCEL (outlined)
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF5E6D3),
-                foregroundColor: const Color(0xFF6B4423),
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  side: const BorderSide(color: Color(0xFF6B4423), width: 2),
-                ),
-              ),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(
-                  fontFamily: 'Questrial',
-                  fontSize: 16,
-                ),
-              ),
-            ),
-
-            // ✅ CONFIRM (solid brown)
-            ElevatedButton(
-              onPressed: () async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('tutorial_completed', true);
-                if (selectedPet.isNotEmpty) await prefs.setString('selected_pet', selectedPet);
-                if (petName.isNotEmpty) await prefs.setString('pet_name', petName);
-                if (displayName.isNotEmpty) await prefs.setString('display_name', displayName);
-                await prefs.setString('user_type', userType);
-                if (monthlyAllowance.isNotEmpty) {
-                  await prefs.setString('monthly_allowance', monthlyAllowance);
-                }
-
-                try {
-                  final user = Supabase.instance.client.auth.currentUser;
-                  if (user != null) {
-                    await Supabase.instance.client
-                        .from('users')
-                        .update({'tutorial_completed': true})
-                        .eq('id', user.id);
-                  }
-                } catch (e) {
-                  debugPrint('Error updating Supabase tutorial_completed: $e');
-                }
-
-                if (!context.mounted) return;
-
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const DashboardPage()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6B4423),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-              ),
-              child: const Text(
-                'Confirm',
-                style: TextStyle(
-                  fontFamily: 'Questrial',
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  ),
-);
-  }
+        );
+      },
+    ),
+  );
+}
 
   // Replace the existing build method's button section with this:
 
@@ -1046,63 +1037,67 @@ Widget _buildChecklist2Slide() {
   }
 
   Widget _buildAllowanceField() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: const Color(0xFF6B4423), width: 4),
-          borderRadius: BorderRadius.circular(50),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(38), // 15% opacity
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 40),
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFF6B4423), width: 4),
+        borderRadius: BorderRadius.circular(50),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(38),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: const BoxDecoration(
+                color: Color(0xFF6B4423),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.account_balance_wallet,
+                color: Color(0xFFF5E6D3),
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                controller: _allowanceController,
+                onChanged: (value) => setState(() => monthlyAllowance = value),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                // ✅ Add input formatters to restrict to numbers and decimal point only
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Color(0xFF6B4423),
+                  fontFamily: 'Questrial',
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Monthly Allowance',
+                  hintStyle: TextStyle(
+                    color: Color(0xFFA0A0A0),
+                    fontFamily: 'Questrial',
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF6B4423),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.account_balance_wallet,
-                  color: Color(0xFFF5E6D3),
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _allowanceController,
-                  onChanged: (value) => setState(() => monthlyAllowance = value),
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Color(0xFF6B4423),
-                    fontFamily: 'Questrial',
-                  ),
-                  decoration: const InputDecoration(
-                    hintText: 'Monthly Allowance',
-                    hintStyle: TextStyle(
-                      color: Color(0xFFA0A0A0),
-                      fontFamily: 'Questrial',
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
