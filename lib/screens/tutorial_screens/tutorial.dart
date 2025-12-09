@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../pages/dashboard/dashboard.dart';
 
 class TutorialScreen extends StatefulWidget {
-  const TutorialScreen({super.key}); // use super.key
+  const TutorialScreen({super.key});
 
   @override
   State<TutorialScreen> createState() => _TutorialScreenState();
@@ -36,34 +35,39 @@ class _TutorialScreenState extends State<TutorialScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSlides();
+    _loadSlidesFromSupabase();
   }
 
-  Future<void> _loadSlides() async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<void> _loadSlidesFromSupabase() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      try {
+        final response = await Supabase.instance.client
+            .from('users')
+            .select()
+            .eq('id', user.id)
+            .single();
 
-    // Always include checklist slides
-    availableSlides = [0, 1, 2];
-
-    // Only include slides if values not yet set
-    if ((prefs.getString('selected_pet') ?? '').isEmpty) availableSlides.add(3);
-    if ((prefs.getString('pet_name') ?? '').isEmpty) availableSlides.add(4);
-    if ((prefs.getString('display_name') ?? '').isEmpty ||
-        (prefs.getString('monthly_allowance') ?? '').isEmpty) availableSlides.add(5);
-
-    // Pre-fill existing values
-    selectedPet = prefs.getString('selected_pet') ?? '';
-    petName = prefs.getString('pet_name') ?? '';
-    displayName = prefs.getString('display_name') ?? '';
-    monthlyAllowance = prefs.getString('monthly_allowance') ?? '';
+        selectedPet = response['selected_pet'] ?? '';
+        petName = response['pet_name'] ?? '';
+        displayName = response['display_name'] ?? '';
+        monthlyAllowance = response['monthly_allowance']?.toString() ?? '';
+        userType = response['user_type'] ?? 'Student/Employee';
+      } catch (e) {
+        debugPrint('Error fetching Supabase user data: $e');
+      }
+    }
 
     _nameController.text = petName;
     _displayNameController.text = displayName;
     _allowanceController.text = monthlyAllowance;
 
-    setState(() {
-      currentSlideIndex = 0;
-    });
+    availableSlides = [0, 1, 2];
+    if (selectedPet.isEmpty) availableSlides.add(3);
+    if (petName.isEmpty) availableSlides.add(4);
+    if (displayName.isEmpty || monthlyAllowance.isEmpty) availableSlides.add(5);
+
+    setState(() => currentSlideIndex = 0);
   }
 
   Future<void> showStyledPopup({
@@ -73,81 +77,55 @@ class _TutorialScreenState extends State<TutorialScreen> {
   }) async {
     return showDialog(
       context: context,
-      builder: (context) {
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final maxWidth = (constraints.maxWidth * 0.9).clamp(0, 500.0) as double;
-
-            return AlertDialog(
-              backgroundColor: const Color(0xFFFDE6D0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: Color(0xFF6B4423), width: 3),
-              ),
-              contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-              insetPadding: const EdgeInsets.symmetric(horizontal: 20),
-              content: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/logo.png',
-                      height: 70,
-                    ),
-                    const SizedBox(height: 15),
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'Questrial',
-                        color: Color(0xFF6B4423),
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      message,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'Questrial',
-                        color: Color(0xFF6B4423),
-                        fontSize: 16,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 25),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6B4423),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 14, horizontal: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                        ),
-                        child: const Text(
-                          'OK',
-                          style: TextStyle(
-                            fontFamily: 'Questrial',
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                  ],
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFFDE6D0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF6B4423), width: 3),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/images/logo.png', height: 70),
+            const SizedBox(height: 15),
+            Text(title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Questrial',
+                  color: Color(0xFF6B4423),
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                )),
+            const SizedBox(height: 12),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Questrial',
+                  color: Color(0xFF6B4423),
+                  fontSize: 16,
+                  height: 1.4,
+                )),
+            const SizedBox(height: 25),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6B4423),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
                 ),
+                child: const Text('OK',
+                    style: TextStyle(fontFamily: 'Questrial', fontSize: 16)),
               ),
-            );
-          },
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -157,10 +135,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
     // Slide 3 → Pet selection check
     if (currentSlide == 3 && selectedPet.isEmpty) {
       showStyledPopup(
-        context: context,
-        title: "Pet Not Selected",
-        message: "Please choose a pet before continuing.",
-      );
+          context: context,
+          title: "Pet Not Selected",
+          message: "Please choose a pet before continuing.");
       return;
     }
 
@@ -168,18 +145,16 @@ class _TutorialScreenState extends State<TutorialScreen> {
     if (currentSlide == 4) {
       if (petName.trim().isEmpty) {
         showStyledPopup(
-          context: context,
-          title: "Pet Name Empty",
-          message: "Please enter a name for your pet before continuing.",
-        );
+            context: context,
+            title: "Pet Name Empty",
+            message: "Please enter a name for your pet before continuing.");
         return;
       }
       if (petName.trim().length > 12) {
         showStyledPopup(
-          context: context,
-          title: "Name Too Long",
-          message: "Your pet's name is too long. Please limit it to 12 characters.",
-        );
+            context: context,
+            title: "Name Too Long",
+            message: "Your pet's name is too long. Please limit it to 12 characters.");
         return;
       }
     }
@@ -188,95 +163,113 @@ class _TutorialScreenState extends State<TutorialScreen> {
     if (currentSlide == 5) {
       if (displayName.trim().isEmpty) {
         showStyledPopup(
-          context: context,
-          title: "Display Name Empty",
-          message: "Please enter a display name before continuing.",
-        );
+            context: context,
+            title: "Display Name Empty",
+            message: "Please enter a display name before continuing.");
         return;
       }
     }
 
-    // Continue to next slide
     if (currentSlideIndex < availableSlides.length - 1) {
-      setState(() {
-        currentSlideIndex++;
-      });
+      setState(() => currentSlideIndex++);
     }
   }
 
   void handleBack() {
-    if (currentSlideIndex > 0) {
-      setState(() => currentSlideIndex--);
-    }
+    if (currentSlideIndex > 0) setState(() => currentSlideIndex--);
   }
 
-  Future<void> handleFinish() async {
-  // Only run slide 5 validations if the slide exists in this session
-  if (availableSlides.contains(5)) {
-    if (displayName.trim().isEmpty) {
-      await showStyledPopup(
-        context: context,
-        title: "Display Name Empty",
-        message: "Please enter a display name before continuing.",
-      );
-      return;
-    }
-    if (displayName.trim().length > 12) {
-      await showStyledPopup(
-        context: context,
-        title: "Display Name Too Long",
-        message: "Display name must be 12 characters or less.",
-      );
-      return;
-    }
-    if (RegExp(r'^[0-9]+$').hasMatch(displayName.trim())) {
-      await showStyledPopup(
-        context: context,
-        title: "Invalid Display Name",
-        message: "Display name cannot contain only numbers. Please include letters.",
-      );
-      return;
-    }
-    if (monthlyAllowance.trim().isEmpty) {
-      await showStyledPopup(
-        context: context,
-        title: "Allowance Empty",
-        message: "Please enter your monthly allowance before continuing.",
-      );
-      return;
-    }
-    final allowanceNum = double.tryParse(monthlyAllowance.trim());
-    if (allowanceNum == null || allowanceNum <= 0) {
-      await showStyledPopup(
-        context: context,
-        title: "Invalid Allowance",
-        message: "Please enter a valid positive number for your monthly allowance.",
-      );
-      return;
-    }
+Future<void> handleFinish() async {
+  // Validate selected pet
+  if (selectedPet.isEmpty) {
+    await showStyledPopup(
+      context: context,
+      title: "Pet Not Selected",
+      message: "Please choose a pet before continuing.",
+    );
+    return;
   }
 
-  // Save data regardless of slides
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setBool('tutorial_completed', true);
-  if (selectedPet.isNotEmpty) await prefs.setString('selected_pet', selectedPet);
-  if (petName.isNotEmpty) await prefs.setString('pet_name', petName);
-  if (displayName.isNotEmpty) await prefs.setString('display_name', displayName);
-  await prefs.setString('user_type', userType);
-  if (monthlyAllowance.isNotEmpty) {
-    await prefs.setString('monthly_allowance', monthlyAllowance);
+  // Validate pet name
+  if (petName.trim().isEmpty) {
+    await showStyledPopup(
+      context: context,
+      title: "Pet Name Empty",
+      message: "Please enter a name for your pet before continuing.",
+    );
+    return;
+  }
+  if (petName.trim().length > 12) {
+    await showStyledPopup(
+      context: context,
+      title: "Pet Name Too Long",
+      message: "Your pet's name must be 12 characters or less.",
+    );
+    return;
   }
 
+  // Validate display name
+  if (displayName.trim().isEmpty) {
+    await showStyledPopup(
+      context: context,
+      title: "Display Name Empty",
+      message: "Please enter a display name before continuing.",
+    );
+    return;
+  }
+  if (displayName.trim().length > 12) {
+    await showStyledPopup(
+      context: context,
+      title: "Display Name Too Long",
+      message: "Display name must be 12 characters or less.",
+    );
+    return;
+  }
+  if (RegExp(r'^[0-9]+$').hasMatch(displayName.trim())) {
+    await showStyledPopup(
+      context: context,
+      title: "Invalid Display Name",
+      message: "Display name cannot contain only numbers. Please include letters.",
+    );
+    return;
+  }
+
+  // Validate monthly allowance
+  if (monthlyAllowance.trim().isEmpty) {
+    await showStyledPopup(
+      context: context,
+      title: "Allowance Empty",
+      message: "Please enter your monthly allowance before continuing.",
+    );
+    return;
+  }
+  final allowanceNum = double.tryParse(monthlyAllowance.trim());
+  if (allowanceNum == null || allowanceNum <= 0) {
+    await showStyledPopup(
+      context: context,
+      title: "Invalid Allowance",
+      message: "Please enter a valid positive number for your monthly allowance.",
+    );
+    return;
+  }
+
+  // Save all values to Supabase
   try {
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
-      await Supabase.instance.client
-          .from('users')
-          .update({'tutorial_completed': true})
-          .eq('id', user.id);
+      await Supabase.instance.client.from('users').upsert({
+        'id': user.id,
+        'selected_pet': selectedPet,
+        'pet_name': petName,
+        'display_name': displayName,
+        'monthly_allowance': allowanceNum,
+        'tutorial_completed': true,
+        'user_type': userType,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }, onConflict: 'id');
     }
   } catch (e) {
-    debugPrint('Error updating Supabase tutorial_completed: $e');
+    debugPrint('Error saving tutorial data to Supabase: $e');
   }
 
   if (!context.mounted) return;
@@ -288,18 +281,27 @@ class _TutorialScreenState extends State<TutorialScreen> {
 }
 
 
+  // -----------------------
+  // Build Slides Methods
+  // -----------------------
   Widget _buildSlideContent() {
     if (availableSlides.isEmpty) return Container();
-
     final slide = availableSlides[currentSlideIndex];
     switch (slide) {
-      case 0: return _buildWelcomeSlide();
-      case 1: return _buildChecklistSlide();
-      case 2: return _buildChecklist2Slide();
-      case 3: return _buildChoosePetSlide();
-      case 4: return _buildNamePetSlide();
-      case 5: return _buildAllowanceSlide();
-      default: return Container();
+      case 0:
+        return _buildWelcomeSlide();
+      case 1:
+        return _buildChecklistSlide();
+      case 2:
+        return _buildChecklist2Slide();
+      case 3:
+        return _buildChoosePetSlide();
+      case 4:
+        return _buildNamePetSlide();
+      case 5:
+        return _buildAllowanceSlide();
+      default:
+        return Container();
     }
   }
 
@@ -312,11 +314,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
           child: Column(
             children: [
-              Expanded(
-                child: Center(
-                  child: SingleChildScrollView(child: _buildSlideContent()),
-                ),
-              ),
+              Expanded(child: Center(child: SingleChildScrollView(child: _buildSlideContent()))),
               const SizedBox(height: 40),
               Column(
                 children: [
@@ -361,41 +359,45 @@ class _TutorialScreenState extends State<TutorialScreen> {
                             children: [
                               Icon(Icons.arrow_back, size: 24),
                               SizedBox(width: 8),
-                              Text('Back', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w400, fontFamily: 'Questrial')),
+                              Text('Back',
+                                  style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w400,
+                                      fontFamily: 'Questrial')),
                             ],
                           ),
                         ),
                       if (currentSlideIndex > 0) const SizedBox(width: 20),
-                        ElevatedButton(
-                          onPressed: currentSlideIndex == availableSlides.length - 1 
-                              ? handleFinish
-                              : handleNext,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6B4423),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            elevation: 8,
-                            shadowColor: Colors.black.withAlpha(77),
+                      ElevatedButton(
+                        onPressed: currentSlideIndex == availableSlides.length - 1
+                            ? handleFinish
+                            : handleNext,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6B4423),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                currentSlideIndex == availableSlides.length - 1 ? 'Finish' : 'Next',
+                          elevation: 8,
+                          shadowColor: Colors.black.withAlpha(77),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                                currentSlideIndex == availableSlides.length - 1
+                                    ? 'Finish'
+                                    : 'Next',
                                 style: const TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.w400,
-                                    fontFamily: 'Questrial'),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.arrow_forward, size: 24),
-                            ],
-                          ),
+                                    fontFamily: 'Questrial')),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward, size: 24),
+                          ],
                         ),
-
+                      ),
                     ],
                   ),
                 ],
