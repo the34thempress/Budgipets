@@ -10,6 +10,7 @@ import 'package:budgipets/pages/dashboard/set_budget_dialog.dart';
 import 'package:budgipets/controllers/audio_manager.dart';
 import 'package:budgipets/widgets/profilecard.dart';
 import 'package:budgipets/screens/tutorial_screens/tutorial.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -27,32 +28,27 @@ class _DashboardPageState extends State<DashboardPage> {
   RealtimeChannel? _budgetChannel;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  final List<DateTime> _streakDays = [
-    DateTime(2025, 10, 10),
-    DateTime(2025, 10, 11),
-    DateTime(2025, 10, 13),
-    DateTime(2025, 10, 14),
-  ];
-  final List<DateTime> _missedDays = [
-    DateTime(2025, 10, 8),
-    DateTime(2025, 10, 9),
-    DateTime(2025, 10, 12),
-  ];
-
-  // Supabase client
+  final List<DateTime> _streakDays = [];
+  int _currentStreak = 0;
   final _supabase = Supabase.instance.client;
-
-  // Coins state
   int _coins = 0;
   bool _loadingCoins = true;
+  String _petType = 'dog';
+  int _petTotalFeeds = 0;
 
   @override
-void initState() {
-  super.initState();
-  _loadOrCreateBudget();
-  _audioService.initMusic(); // Changed from playMusic() to initMusic()
-  _loadCoins();
-}
+  void initState() {
+    super.initState();
+    _loadOrCreateBudget();
+    _audioService.initMusic();
+    _initDashboardData();
+  }
+
+  Future<void> _initDashboardData() async {
+    await _loadCoins();
+    await _handleDailyLoginAndStreak();
+    await _loadPetForDashboard();
+  }
 
   @override
   void dispose() {
@@ -61,6 +57,8 @@ void initState() {
   }
 
   DateTime _monthStart(DateTime dt) => DateTime(dt.year, dt.month, 1);
+
+  DateTime _normalizeDate(DateTime d) => DateTime(d.year, d.month, d.day);
 
   Future<void> _loadOrCreateBudget() async {
     try {
@@ -108,7 +106,7 @@ void initState() {
           _loading = false;
         });
       }
-    } catch (e, st) {
+    } catch (e) {
       if (!mounted) return;
       setState(() {
         _loading = false;
@@ -136,10 +134,10 @@ void initState() {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF6A3E1C), // deep brown theme
+              color: const Color(0xFF6A3E1C),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFF3E1D01), // darker brown border
+                color: const Color(0xFF3E1D01),
                 width: 1.4,
               ),
               boxShadow: [
@@ -153,7 +151,6 @@ void initState() {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // TITLE
                 Text(
                   title,
                   style: const TextStyle(
@@ -163,10 +160,7 @@ void initState() {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // INPUT FIELD
                 TextField(
                   controller: controller,
                   autofocus: true,
@@ -181,8 +175,8 @@ void initState() {
                     filled: true,
                     fillColor: Colors.white,
                     hintText: "Enter amount",
-                    hintStyle: TextStyle(
-                      color: const Color(0xFF3E1D01),
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF3E1D01),
                       fontFamily: "Questrial",
                     ),
                     contentPadding: const EdgeInsets.symmetric(
@@ -191,7 +185,7 @@ void initState() {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(
+                      borderSide: const BorderSide(
                         color: Color(0xFF3E1D01),
                       ),
                     ),
@@ -203,14 +197,10 @@ void initState() {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 22),
-
-                // BUTTON ROW
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    // CANCEL BUTTON
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
                       child: Container(
@@ -235,8 +225,6 @@ void initState() {
                         ),
                       ),
                     ),
-
-                    // CONFIRM BUTTON
                     GestureDetector(
                       onTap: () {
                         final value = double.tryParse(controller.text);
@@ -301,7 +289,6 @@ void initState() {
     }
   }
 
-  // ---------------------- COINS LOADING ----------------------
   Future<void> _loadCoins() async {
     setState(() {
       _loadingCoins = true;
@@ -318,23 +305,23 @@ void initState() {
     }
 
     try {
-      // Use maybeSingle to avoid single() error when row is missing
       final resp = await _supabase
           .from('profiles')
           .select('coins')
           .eq('id', user.id)
           .maybeSingle();
 
-      // resp can be null, a Map, or other forms; handle safely
       int parsed = 0;
       if (resp == null) {
         parsed = 0;
       } else if (resp is Map && resp.containsKey('coins')) {
         final val = resp['coins'];
-        if (val is int) parsed = val;
-        else parsed = int.tryParse(val?.toString() ?? '0') ?? 0;
+        if (val is int) {
+          parsed = val;
+        } else {
+          parsed = int.tryParse(val?.toString() ?? '0') ?? 0;
+        }
       } else {
-        // fallback: try to parse numeric string
         parsed = int.tryParse(resp.toString()) ?? 0;
       }
 
@@ -349,14 +336,12 @@ void initState() {
         _coins = 0;
         _loadingCoins = false;
       });
-      debugPrint('loadCoins error: $e');
     }
   }
 
   Future<void> _updateCoins(int newCoins) async {
     final user = _supabase.auth.currentUser;
     if (user == null) return;
-    // Update local immediately for snappy UI
     setState(() {
       _coins = newCoins;
     });
@@ -364,128 +349,345 @@ void initState() {
     try {
       await _supabase.from('profiles').update({'coins': newCoins}).eq('id', user.id);
     } catch (e) {
-      debugPrint('updateCoins error: $e');
-      // Try to reload from backend if update fails
       await _loadCoins();
     }
   }
 
-Widget _buildTopBarEmptyWithAvatar() {
-  return Container(
-    color: const Color(0xFF6A3E1C),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // 👤 AVATAR ON THE LEFT
-        GestureDetector(
-          onTap: () async {
-            if (!mounted) return;
+  Future<void> _handleDailyLoginAndStreak() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      if (!mounted) return;
+      setState(() {
+        _streakDays.clear();
+        _currentStreak = 0;
+      });
+      return;
+    }
 
-            await showDialog(
+    final today = _normalizeDate(DateTime.now());
+    final todayStr =
+        '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+
+    try {
+      final existing = await _supabase
+          .from('daily_logins')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('login_date', todayStr)
+          .maybeSingle();
+
+      if (existing == null) {
+        await _supabase.from('daily_logins').insert({
+          'user_id': user.id,
+          'login_date': todayStr,
+        });
+
+        final currentCoinsResp = await _supabase
+            .from('profiles')
+            .select('coins')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        int currentCoins = 0;
+        if (currentCoinsResp != null &&
+            currentCoinsResp is Map &&
+            currentCoinsResp['coins'] != null) {
+          final val = currentCoinsResp['coins'];
+          if (val is int) {
+            currentCoins = val;
+          } else {
+            currentCoins = int.tryParse(val.toString()) ?? 0;
+          }
+        }
+
+        await _updateCoins(currentCoins + 1);
+
+        final prefs = await SharedPreferences.getInstance();
+        final currentMeals = prefs.getInt('budgimeal_count') ?? 0;
+        await prefs.setInt('budgimeal_count', currentMeals + 1);
+
+        if (mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            showDialog(
               context: context,
-              barrierDismissible: true,
               builder: (context) {
-                return Dialog(
-                  backgroundColor: Colors.transparent,
-                  insetPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 24,
+                return AlertDialog(
+                  backgroundColor: const Color(0xFFFDE6D0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
                   ),
-                  child: const BudgetProfileCard(),
+                  title: const Text(
+                    'Daily Reward',
+                    style: TextStyle(
+                      fontFamily: 'Questrial',
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF5C2E14),
+                    ),
+                  ),
+                  content: const Text(
+                    'You earned 1 coin and 1 Budgimeal!',
+                    style: TextStyle(
+                      fontFamily: 'Questrial',
+                      fontSize: 15,
+                      color: Color(0xFF5C2E14),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text(
+                        'OK',
+                        style: TextStyle(
+                          fontFamily: 'Questrial',
+                          color: Color(0xFF5C2E14),
+                        ),
+                      ),
+                    ),
+                  ],
                 );
               },
             );
+          });
+        }
+      }
 
-            // Refresh coins when closed
-            if (!mounted) return;
-            await _loadCoins();
-          },
-          child: const CircleAvatar(
-            radius: 30,
-            backgroundImage: AssetImage("assets/images/user.png"),
+      await _loadLoginDaysAndStreak();
+    } catch (e) {}
+  }
+
+  Future<void> _loadLoginDaysAndStreak() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      if (!mounted) return;
+      setState(() {
+        _streakDays.clear();
+        _currentStreak = 0;
+      });
+      return;
+    }
+
+    try {
+      final resp = await _supabase
+          .from('daily_logins')
+          .select('login_date')
+          .eq('user_id', user.id)
+          .order('login_date', ascending: true);
+
+      final List<DateTime> loginDays = [];
+      final Set<DateTime> loginSet = {};
+
+      if (resp is List) {
+        for (final row in resp) {
+          if (row is Map && row['login_date'] != null) {
+            final d = DateTime.parse(row['login_date'] as String);
+            final norm = _normalizeDate(d);
+            loginDays.add(norm);
+            loginSet.add(norm);
+          }
+        }
+      }
+
+      int streak = 0;
+      DateTime cursor = _normalizeDate(DateTime.now());
+
+      while (loginSet.contains(cursor)) {
+        streak++;
+        cursor = cursor.subtract(const Duration(days: 1));
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _streakDays
+          ..clear()
+          ..addAll(loginDays);
+        _currentStreak = streak;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _streakDays.clear();
+        _currentStreak = 0;
+      });
+    }
+  }
+
+  Future<void> _loadPetForDashboard() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      if (!mounted) return;
+      setState(() {
+        _petType = 'dog';
+        _petTotalFeeds = 0;
+      });
+      return;
+    }
+
+    try {
+      final existing = await _supabase
+          .from('pets')
+          .select()
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      late final Map<String, dynamic> petRow;
+
+      if (existing != null && existing is Map<String, dynamic>) {
+        petRow = Map<String, dynamic>.from(existing);
+      } else {
+        final inserted = await _supabase
+            .from('pets')
+            .insert({
+              'user_id': user.id,
+              'pet_type': 'dog',
+              'total_feeds': 0,
+              'sickness': 0,
+            })
+            .select()
+            .single();
+        petRow = Map<String, dynamic>.from(inserted as Map);
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _petType = (petRow['pet_type'] as String?) ?? 'dog';
+        _petTotalFeeds = (petRow['total_feeds'] as int?) ?? 0;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _petType = 'dog';
+        _petTotalFeeds = 0;
+      });
+    }
+  }
+
+  int _petStageFromFeeds() {
+    if (_petTotalFeeds >= 35) return 3;
+    if (_petTotalFeeds >= 5) return 2;
+    return 1;
+  }
+
+  String _petImageForDashboard() {
+    final stage = _petStageFromFeeds();
+    if (_petType == 'cat') {
+      if (stage == 1) return 'assets/images/cat_egg.png';
+      if (stage == 2) return 'assets/images/kitten.png';
+      return 'assets/images/cat.png';
+    } else {
+      if (stage == 1) return 'assets/images/dog_egg.png';
+      if (stage == 2) return 'assets/images/puppy.png';
+      return 'assets/images/dog.png';
+    }
+  }
+
+  Widget _buildTopBarEmptyWithAvatar() {
+    return Container(
+      color: const Color(0xFF6A3E1C),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () async {
+              if (!mounted) return;
+
+              await showDialog(
+                context: context,
+                barrierDismissible: true,
+                builder: (context) {
+                  return Dialog(
+                    backgroundColor: Colors.transparent,
+                    insetPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 24,
+                    ),
+                    child: const BudgetProfileCard(),
+                  );
+                },
+              );
+
+              if (!mounted) return;
+              await _loadCoins();
+            },
+            child: const CircleAvatar(
+              radius: 30,
+              backgroundImage: AssetImage("assets/images/user.png"),
+            ),
           ),
-        ),
-
-        // 🪙 COINS WITH QUESTION MARK BUTTON
-        Row(
-          children: [
-            // ❓ QUESTION MARK BUTTON
-            GestureDetector(
-              onTap: () {
-                // Navigate to TutorialScreen when pressed
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const TutorialScreen()),
-                );
-              },
-              child: Container(
-                margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.all(6),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const TutorialScreen()),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF3E1D01), width: 1),
+                  ),
+                  child: const Icon(
+                    Icons.help_outline,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFF3E1D01), width: 1),
                 ),
-                child: const Icon(
-                  Icons.help_outline,
-                  color: Colors.white,
-                  size: 24,
+                child: Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/coin.png',
+                      width: 26,
+                      height: 26,
+                    ),
+                    const SizedBox(width: 4),
+                    _loadingCoins
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            '$_coins',
+                            style: const TextStyle(
+                              fontFamily: 'Questrial',
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ],
                 ),
               ),
-            ),
-
-            // 🪙 COINS CONTAINER
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF3E1D01), width: 1),
-              ),
-              child: Row(
-                children: [
-                  Image.asset(
-                    'assets/images/coin.png',
-                    width: 26,
-                    height: 26,
-                  ),
-                  const SizedBox(width: 4),
-                  _loadingCoins
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(
-                          '$_coins',
-                          style: const TextStyle(
-                            fontFamily: 'Questrial',
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
-}
-
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildSummaryTitle() {
     return Padding(
       padding: const EdgeInsets.only(top: 12.0, bottom: 8.0),
       child: Center(
         child: Text(
-          "Summary",
+          "MAIN",
           style: const TextStyle(
             fontFamily: "Questrial",
             fontSize: 34,
@@ -560,7 +762,7 @@ Widget _buildTopBarEmptyWithAvatar() {
               ),
             ),
           ),
-          SizedBox(width: 7), // space before divider
+          const SizedBox(width: 7),
           Container(
             width: 10,
             alignment: Alignment.center,
@@ -569,20 +771,20 @@ Widget _buildTopBarEmptyWithAvatar() {
               children: List.generate(
                   6,
                   (i) => Container(
-                        width: 1,                        // thickness of line
-                        height: 10,                      // adjust to match card height
-                        color: Color(0xFF582901),        // same dark brown color
+                        width: 1,
+                        height: 10,
+                        color: const Color(0xFF582901),
                       )),
             ),
           ),
-          SizedBox(width: 7), // space before divider
+          const SizedBox(width: 7),
           Expanded(
             child: GestureDetector(
               onTap: () async {
                 if (_loading || _dialogOpen) return;
                 _editingAmount = true;
                 final v = await _promptNumber(
-                  title: "Set Goal",
+                  title: "Set Monthly Goal",
                   initial: 0.0,
                 );
                 if (v != null) {
@@ -604,7 +806,7 @@ Widget _buildTopBarEmptyWithAvatar() {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Goal:",
+                    const Text("Monthly Goal:",
                         style: TextStyle(
                             color: Color(0xFFFFD79B),
                             fontFamily: "Questrial",
@@ -632,37 +834,49 @@ Widget _buildTopBarEmptyWithAvatar() {
   Widget _buildDaysAndPet() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-      child:  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Column(
-                        children: const [
-                          Text(
-                            "34",
-                            style: TextStyle(
-                              fontFamily: "PixelifySans",
-                              fontSize: 90,
-                              height: 0.9,
-                              color: Color(0xFF5C2E14),
-                            ),
-                          ),
-                          Text(
-                            "DAYS",
-                            style: TextStyle(
-                              fontFamily: "PixelifySans",
-                              fontSize: 40,
-                              color: Color(0xFF5C2E14),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 15),
-                      Image.asset(
-                        "assets/images/dog.png",
-                        height: 140,
-                      ),
-                    ],
-                  ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Column(
+            children: [
+              Text(
+                _currentStreak.toString(),
+                style: const TextStyle(
+                  fontFamily: "PixelifySans",
+                  fontSize: 90,
+                  height: 0.9,
+                  color: Color(0xFF5C2E14),
+                ),
+              ),
+              const Text(
+                "DAY(S)",
+                style: TextStyle(
+                  fontFamily: "PixelifySans",
+                  fontSize: 40,
+                  color: Color(0xFF5C2E14),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 15),
+          GestureDetector(
+            onTap: () async {
+              if (!mounted) return;
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PetManagementPage()),
+              );
+              if (!mounted) return;
+              await _loadCoins();
+              await _loadPetForDashboard();
+            },
+            child: Image.asset(
+              _petImageForDashboard(),
+              height: 140,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -718,9 +932,13 @@ Widget _buildTopBarEmptyWithAvatar() {
               startingDayOfWeek: StartingDayOfWeek.sunday,
               calendarStyle: const CalendarStyle(
                 defaultTextStyle: TextStyle(
-                    color: Color.fromARGB(255, 247, 233, 210), fontFamily: "Questrial", fontSize: 13),
+                    color: Color.fromARGB(255, 247, 233, 210),
+                    fontFamily: "Questrial",
+                    fontSize: 13),
                 weekendTextStyle: TextStyle(
-                    color: Color.fromARGB(255, 220, 201, 171), fontFamily: "Questrial", fontSize: 13),
+                    color: Color.fromARGB(255, 220, 201, 171),
+                    fontFamily: "Questrial",
+                    fontSize: 13),
                 outsideTextStyle:
                     TextStyle(color: outsideColor, fontFamily: "Questrial"),
                 isTodayHighlighted: false,
@@ -752,15 +970,17 @@ Widget _buildTopBarEmptyWithAvatar() {
                   );
                 },
                 defaultBuilder: (context, day, focusedDay) {
-                  final isStreak = _streakDays.any((d) => isSameDay(d, day));
-                  final isMissed = _missedDays.any((d) => isSameDay(d, day));
+                  final isStreak =
+                      _streakDays.any((d) => isSameDay(d, day));
                   final isToday = isSameDay(day, DateTime.now());
                   final isSelected = isSameDay(day, _selectedDay);
                   if (isSelected) return null;
                   Color? bgColor;
                   BoxBorder? border;
                   TextStyle textStyle = const TextStyle(
-                      color: dayTextColor, fontFamily: "Questrial", fontSize: 13);
+                      color: dayTextColor,
+                      fontFamily: "Questrial",
+                      fontSize: 13);
                   if (isStreak) {
                     bgColor = const Color(0xFFF4D6C1);
                     textStyle = const TextStyle(
@@ -769,8 +989,6 @@ Widget _buildTopBarEmptyWithAvatar() {
                       fontFamily: "Questrial",
                       fontSize: 13,
                     );
-                  } else if (isMissed) {
-                    bgColor = const Color(0xFFD7B59B);
                   } else if (isToday) {
                     border = Border.all(color: const Color(0xFFFFE4B3), width: 2);
                   }
@@ -893,6 +1111,7 @@ Widget _buildTopBarEmptyWithAvatar() {
                           MaterialPageRoute(builder: (_) => const PetManagementPage()));
                       if (!mounted) return;
                       await _loadCoins();
+                      await _loadPetForDashboard();
                     },
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

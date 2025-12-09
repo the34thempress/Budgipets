@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:budgipets/widgets/main_page_nav_header.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class StorePage extends StatefulWidget {
   const StorePage({super.key});
@@ -56,10 +57,10 @@ class _StorePageState extends State<StorePage> {
 
   final List<Map<String, dynamic>> storeItems = [
     {
-      'name': 'Streak Freeze',
-      'description': 'This item allows you to freeze your current streak to save your pet\'s life!',
-      'price': 50,
-      'image': 'assets/images/streakfreeze.png',
+      'name': 'Budgimeal',
+      'description': 'Feed this to your pet to help it level up faster.',
+      'price': 100,
+      'image': 'assets/images/budgimeal.png',
     },
     {
       'name': 'Cool Glasses',
@@ -94,7 +95,7 @@ class _StorePageState extends State<StorePage> {
     },
   ];
 
-  void _showSuccessPurchaseDialog(String itemName) {
+  void _showSuccessPurchaseDialog(String itemName, int quantity) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -114,7 +115,9 @@ class _StorePageState extends State<StorePage> {
           textAlign: TextAlign.center,
         ),
         content: Text(
-          'You purchased $itemName!',
+          quantity > 1
+              ? 'You purchased $quantity $itemName items!'
+              : 'You purchased $itemName!',
           style: const TextStyle(
             fontFamily: 'Questrial',
             color: Color(0xFF6B4423),
@@ -138,84 +141,206 @@ class _StorePageState extends State<StorePage> {
   }
 
   void _showConfirmDialog(Map<String, dynamic> item) {
+    final bool isBudgimeal = item['name'] == 'Budgimeal';
+    if (!isBudgimeal) return;
+
+    int quantity = 1;
+    bool isProcessing = false;
+
     showDialog(
       context: context,
       builder: (context) {
-        bool canAfford = coins >= item['price'];
-        return AlertDialog(
-          backgroundColor: const Color(0xFFF5E6D3),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: Color(0xFF6B4423), width: 3),
-          ),
-          title: Text(
-            'Purchase ${item['name']}?',
-            style: const TextStyle(
-              fontFamily: 'Questrial',
-              color: Color(0xFF6B4423),
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          content: Text(
-            canAfford
-                ? 'This will cost ${item['price']} coins.'
-                : 'You don\'t have enough coins to buy this item.',
-            style: const TextStyle(
-              fontFamily: 'Questrial',
-              color: Color(0xFF6B4423),
-              fontSize: 16,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          actions: [
-            if (!canAfford)
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6B4423),
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('OK'),
-              ),
-            if (canAfford) ...[
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(color: Color(0xFF8B6443)),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final price = item['price'] as int;
-                  final newCoins = coins - price;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final int price = item['price'] as int;
+            final int totalPrice = price * quantity;
+            final bool canAfford = coins >= totalPrice;
+            final bool disableControls = isProcessing;
 
-                  await _updateCoins(newCoins);
-
-                  if (!mounted) return;
-
-                  Navigator.pop(context);
-                  _showSuccessPurchaseDialog(item['name']);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6B4423),
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Confirm'),
+            return AlertDialog(
+              backgroundColor: const Color(0xFFF5E6D3),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: const BorderSide(color: Color(0xFF6B4423), width: 3),
               ),
-            ]
-          ],
-          actionsAlignment: MainAxisAlignment.center,
+              title: Text(
+                'Purchase ${item['name']}?',
+                style: const TextStyle(
+                  fontFamily: 'Questrial',
+                  color: Color(0xFF6B4423),
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Each Budgimeal costs 100 coins.\nChoose how many you want to buy.',
+                    style: TextStyle(
+                      fontFamily: 'Questrial',
+                      color: Color(0xFF6B4423),
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: disableControls
+                            ? null
+                            : () {
+                                setState(() {
+                                  if (quantity > 10) {
+                                    quantity -= 10;
+                                  } else {
+                                    quantity = 1;
+                                  }
+                                });
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6B4423),
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(48, 36),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                        child: const Text('-10'),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '$quantity',
+                        style: const TextStyle(
+                          fontFamily: 'Questrial',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF6B4423),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: disableControls
+                            ? null
+                            : () {
+                                setState(() {
+                                  quantity += 10;
+                                });
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6B4423),
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(48, 36),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                        child: const Text('+10'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Total: $totalPrice coins',
+                    style: TextStyle(
+                      fontFamily: 'Questrial',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: canAfford ? const Color(0xFF6B4423) : Colors.red,
+                    ),
+                  ),
+                  if (!canAfford && !isProcessing)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'You don\'t have enough coins.',
+                        style: TextStyle(
+                          fontFamily: 'Questrial',
+                          fontSize: 13,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  if (isProcessing)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 12.0),
+                      child: SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF6B4423),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isProcessing ? null : () => Navigator.pop(context),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Color(0xFF8B6443)),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: (!canAfford || isProcessing)
+                      ? null
+                      : () async {
+                          setState(() {
+                            isProcessing = true;
+                          });
+
+                          final int totalPriceNow = price * quantity;
+                          if (coins < totalPriceNow) {
+                            setState(() {
+                              isProcessing = false;
+                            });
+                            return;
+                          }
+
+                          final int newCoins = coins - totalPriceNow;
+                          await _updateCoins(newCoins);
+
+                          final prefs = await SharedPreferences.getInstance();
+                          final currentMeals =
+                              prefs.getInt('budgimeal_count') ?? 0;
+                          await prefs.setInt(
+                              'budgimeal_count', currentMeals + quantity);
+
+                          if (!mounted) return;
+
+                          Navigator.pop(context);
+                          _showSuccessPurchaseDialog(item['name'], quantity);
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6B4423),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: isProcessing
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Confirm'),
+                ),
+              ],
+              actionsAlignment: MainAxisAlignment.center,
+            );
+          },
         );
       },
     );
   }
 
   Widget _buildStoreItem(Map<String, dynamic> item) {
+    final bool isBudgimeal = item['name'] == 'Budgimeal';
+
     return GestureDetector(
-      onTap: () => _showConfirmDialog(item),
+      onTap: isBudgimeal ? () => _showConfirmDialog(item) : null,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         padding: const EdgeInsets.all(14),
@@ -226,7 +351,6 @@ class _StorePageState extends State<StorePage> {
         ),
         child: Row(
           children: [
-            // Image area
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -241,10 +365,7 @@ class _StorePageState extends State<StorePage> {
                 fit: BoxFit.contain,
               ),
             ),
-
             const SizedBox(width: 12),
-
-            // Name + description
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,36 +394,45 @@ class _StorePageState extends State<StorePage> {
                 ],
               ),
             ),
-
             const SizedBox(width: 5),
-
-            // Price
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-              decoration: BoxDecoration(
-                color: darkBrown,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  Image.asset(
-                    'assets/images/coin.png',
-                    width: 18,
-                    height: 18,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${item['price']}',
-                    style: const TextStyle(
+            isBudgimeal
+                ? Container(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: darkBrown,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/images/coin.png',
+                          width: 16,
+                          height: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${item['price']}',
+                          style: const TextStyle(
+                            fontFamily: 'Questrial',
+                            fontSize: 13,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : const Text(
+                    'SOLD',
+                    style: TextStyle(
                       fontFamily: 'Questrial',
-                      fontSize: 14,
-                      color: Colors.white,
+                      fontSize: 13,
+                      color: Colors.grey,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
-              ),
-            )
           ],
         ),
       ),
@@ -328,7 +458,8 @@ class _StorePageState extends State<StorePage> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.brown,
                     borderRadius: BorderRadius.circular(12),
@@ -365,8 +496,6 @@ class _StorePageState extends State<StorePage> {
               ],
             ),
           ),
-
-          // +1 / -1 buttons
           Padding(
             padding: const EdgeInsets.only(top: 10, bottom: 8),
             child: Row(
@@ -377,10 +506,14 @@ class _StorePageState extends State<StorePage> {
                     final newCoins = coins + 1;
                     await _updateCoins(newCoins);
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  child: const Text('+1 Coin'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    minimumSize: const Size(52, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                  ),
+                  child: const Text('+1'),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () async {
                     if (coins > 0) {
@@ -388,14 +521,44 @@ class _StorePageState extends State<StorePage> {
                       await _updateCoins(newCoins);
                     }
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  child: const Text('-1 Coin'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    minimumSize: const Size(52, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                  ),
+                  child: const Text('-1'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () async {
+                    final newCoins = coins + 10;
+                    await _updateCoins(newCoins);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    minimumSize: const Size(52, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                  ),
+                  child: const Text('+10'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (coins >= 10) {
+                      final newCoins = coins - 10;
+                      await _updateCoins(newCoins);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    minimumSize: const Size(52, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                  ),
+                  child: const Text('-10'),
                 ),
               ],
             ),
           ),
-
-          // Store list
           Expanded(
             child: ListView.builder(
               itemCount: storeItems.length,
