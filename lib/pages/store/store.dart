@@ -320,11 +320,11 @@ class _StorePageState extends State<StorePage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'STORE',
+                  'Store',
                   style: TextStyle(
                     fontFamily: 'Modak',
                     fontSize: 40,
-                    color: Color(0xFFFDE6D0),
+                    color: Colors.white,
                   ),
                 ),
                 Container(
