@@ -22,7 +22,7 @@ class _BudgetProfileCardState extends State<BudgetProfileCard> {
         TextEditingController(text: _displayName);
     String tempSelectedImage = _profileImage;
 
-    const Color cream = Color(0xFFFDE6D0); // <<< CHANGED
+    const Color cream = Color(0xFFFDE6D0);
 
     showDialog(
       context: context,
@@ -30,9 +30,9 @@ class _BudgetProfileCardState extends State<BudgetProfileCard> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: cream, // <<< CHANGED
+              backgroundColor: cream,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20), // <<< CHANGED
+                borderRadius: BorderRadius.circular(20),
               ),
               title: const Text(
                 'Edit Profile',
@@ -60,13 +60,11 @@ class _BudgetProfileCardState extends State<BudgetProfileCard> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 12),
                         ),
                       ),
-
                       const SizedBox(height: 24),
-
                       const Text(
                         'Choose Profile Picture',
                         style: TextStyle(
@@ -75,15 +73,12 @@ class _BudgetProfileCardState extends State<BudgetProfileCard> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: _availableImages.map((imagePath) {
                             final bool isSelected = tempSelectedImage == imagePath;
-
                             return GestureDetector(
                               onTap: () {
                                 setDialogState(() {
@@ -118,7 +113,6 @@ class _BudgetProfileCardState extends State<BudgetProfileCard> {
                   ),
                 ),
               ),
-
               actions: [
                 TextButton(
                   onPressed: () {
@@ -158,233 +152,233 @@ class _BudgetProfileCardState extends State<BudgetProfileCard> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     const Color brown = Color(0xFF6A3E1C);
     const Color darkBrown = Color(0xFF3D2817);
     const Color cream = Color(0xFFFDE6D0);
 
+    final double cardWidth = screenWidth * 0.9; // responsive width
+    final double profileImageSize = screenWidth * 0.35;
+
     return Center(
-      child: Container(
-        width: 360,
-        decoration: BoxDecoration(
-          color: cream,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Stack(
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 140,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: darkBrown,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(24),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 70),
-
-                Text(
-                  _displayName,
-                  style: const TextStyle(
-                    fontFamily: 'Questrial',
-                    fontSize: 40,
-                    color: darkBrown,
-                  ),
-                ),
-
-                const SizedBox(height: 2),
-
-                const Text(
-                  'Budgeteer since December 8 2035',
-                  style: TextStyle(
-                    fontFamily: 'Questrial',
-                    fontSize: 17,
-                    fontWeight: FontWeight.w500,
-                    color: darkBrown,
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-// EMAIL FIELD (Label on top, value inside the valueBox)
-// EMAIL FIELD (Label inside darker box, value inside lighter box)
-Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 24),
-  child: Container(
-    width: double.infinity,
-    decoration: BoxDecoration(
-      color: const Color(0xFF4F2A09), // outer darker border
-      borderRadius: BorderRadius.circular(10),
-    ),
-    padding: const EdgeInsets.all(8),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Email Address",
-          style: TextStyle(
-            fontFamily: 'Questrial',
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFFFDE6D0), // dark brown for label
-          ),
-        ),
-        const SizedBox(height: 5),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      child: SingleChildScrollView(
+        child: Container(
+          width: cardWidth > 360 ? 360 : cardWidth, // max 360
           decoration: BoxDecoration(
-            color: const Color(0xFF8A4A1F), // inner lighter brown
-            borderRadius: BorderRadius.circular(2),
+            color: cream,
+            borderRadius: BorderRadius.circular(24),
           ),
-          child: const Text(
-            "jaroddodo@gmail.com",
-            style: TextStyle(
-              fontFamily: 'Questrial',
-              fontSize: 16,
-              color: Color(0xFFFDE6D0),
-            ),
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
-
-
-                const SizedBox(height: 24),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    children: [
-                      Expanded(child: Container(height: 2, color: darkBrown)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          "STATS",
-                          style: TextStyle(
-                            fontFamily: 'Modak',
-                            fontSize: 28,
-                            color: Color.fromARGB(255, 40, 24, 13),
-                          ),
-                        ),
-                      ),
-                      Expanded(child: Container(height: 2, color: darkBrown)),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 5),
-
-                // STATS FIXED WITH PADDING
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 19), // <<< CHANGED
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildStatItem("Pet’s Name", "Chubi"),
-                              const SizedBox(height: 20),
-                              _buildStatItem("Type of Budgipet", "Dog"),
-                              const SizedBox(height: 20),
-                              _buildStatItem("Goal Frequency", "Monthly"),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(width: 10),
-
-                      Expanded(
-                        flex: 1,
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 12), // <<< CHANGED
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildStatItem("Pet’s Age", "Adult"),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-              ],
-            ),
-
-            // PROFILE IMAGE + EDIT
-            Positioned(
-              top: 65, // <<< CLOSER
-              left: 0,
-              right: 0,
-              child: Stack(
-                alignment: Alignment.center,
+          child: Stack(
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 140,
                     height: 140,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      border: Border.all(color: Color(0xFF4F2A09), width: 4),
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: darkBrown,
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
                     ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        _profileImage,
-                        fit: BoxFit.cover,
+                  ),
+                  SizedBox(height: profileImageSize / 2 + 10),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      _displayName,
+                      style: const TextStyle(
+                        fontFamily: 'Questrial',
+                        fontSize: 40,
+                        color: darkBrown,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Budgeteer since December 8 2035',
+                    style: TextStyle(
+                      fontFamily: 'Questrial',
+                      fontSize: 17,
+                      fontWeight: FontWeight.w500,
+                      color: darkBrown,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Email field
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4F2A09),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Email Address",
+                            style: TextStyle(
+                              fontFamily: 'Questrial',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFFDE6D0),
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF8A4A1F),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            child: const Text(
+                              "jaroddodo@gmail.com",
+                              style: TextStyle(
+                                fontFamily: 'Questrial',
+                                fontSize: 16,
+                                color: Color(0xFFFDE6D0),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
 
-                  Positioned(
-                    right: 105, // <<< CLOSER
-                    bottom: 5, // <<< CLOSER
-                    child: GestureDetector(
-                      onTap: _showEditProfileDialog,
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: cream,
-                          border: Border.all(color: Color(0xFF4F2A09), width: 2),
+                  const SizedBox(height: 18),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      children: [
+                        Expanded(child: Container(height: 2, color: darkBrown)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            "STATS",
+                            style: TextStyle(
+                              fontFamily: 'Modak',
+                              fontSize: 28,
+                              color: Color.fromARGB(255, 40, 24, 13),
+                            ),
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.edit,
-                          color: Color(0xFF4F2A09),
-                          size: 18,
-                        ),
-                      ),
+                        Expanded(child: Container(height: 2, color: darkBrown)),
+                      ],
                     ),
                   ),
+                  const SizedBox(height: 5),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 19),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildStatItem("Pet’s Name", "Chubi"),
+                                const SizedBox(height: 20),
+                                _buildStatItem("Type of Budgipet", "Dog"),
+                                const SizedBox(height: 20),
+                                _buildStatItem("Goal Frequency", "Monthly"),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          flex: 1,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildStatItem("Pet’s Age", "Adult"),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
                 ],
               ),
-            ),
 
-            Positioned(
-              top: 8,
-              right: 8,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: cream),
-                onPressed: () => Navigator.of(context).pop(),
+              // PROFILE IMAGE + EDIT
+              Positioned(
+                top: 65,
+                left: 0,
+                right: 0,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: profileImageSize,
+                      height: profileImageSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.all(color: const Color(0xFF4F2A09), width: 4),
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          _profileImage,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: profileImageSize / 1.2,
+                      bottom: 5,
+                      child: GestureDetector(
+                        onTap: _showEditProfileDialog,
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: cream,
+                            border:
+                                Border.all(color: const Color(0xFF4F2A09), width: 2),
+                          ),
+                          child: const Icon(
+                            Icons.edit,
+                            color: Color(0xFF4F2A09),
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+
+              Positioned(
+                top: 8,
+                right: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: cream),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -399,7 +393,7 @@ Padding(
           style: const TextStyle(
             fontFamily: 'Questrial',
             fontSize: 14,
-            color: Color.fromARGB(255, 0, 0, 0),
+            color: Colors.black,
           ),
         ),
         const SizedBox(height: 2),
