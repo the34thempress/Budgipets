@@ -40,7 +40,7 @@ class AudioService {
 
   Future<void> playMusic() async {
     if (!_isPlaying) {
-      await _player.play(AssetSource('audio/background_music.mp3'));
+      //await _player.play(AssetSource('audio/background_music.mp3'));
       _isPlaying = true;
     }
   }
